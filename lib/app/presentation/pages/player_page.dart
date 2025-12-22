@@ -139,11 +139,14 @@ class PlayerPage extends StatelessWidget {
               
               const Spacer(),
               // Lyrics Button Area
-              GlassContainer(
-                width: 200,
-                height: 50,
-                borderRadius: 30,
-                child: const Center(child: Text("Lyrics", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+              GestureDetector(
+                onTap: () => Get.to(() => const LyricsPage()),
+                child: GlassContainer(
+                  width: 200,
+                  height: 50,
+                  borderRadius: 30,
+                  child: const Center(child: Text("Lyrics", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                ),
               ),
               const SizedBox(height: 30),
             ],
