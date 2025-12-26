@@ -4,9 +4,11 @@ import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../domain/entities/track.dart';
 import '../../domain/repositories/music_repository.dart';
+import '../services/notification_service.dart';
 
 class MusicController extends GetxController {
   final MusicRepository repository;
+  final NotificationService _notificationService = NotificationService();
 
   MusicController({required this.repository});
   
@@ -19,6 +21,7 @@ class MusicController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _notificationService.init(); // Initialize notifications
     fetchTracksByCategory();
   }
 
@@ -73,14 +76,14 @@ class MusicController extends GetxController {
 
   Future<void> downloadTrack(Track track) async {
     try {
-      // Simple permission request for storage (may vary by Android version)
       var status = await Permission.storage.request();
       
-      // On Android 13+, storage permission isn't needed for public downloads in some ways, 
-      // but let's check general access or manage external storage if needed. 
-      // For simplicity/compatibility:
+      // Request notification permission for Android 13+
+      if (await Permission.notification.isDenied) {
+        await Permission.notification.request();
+      }
+
       if (status.isDenied) {
-         // Try audio permission for Android 13
          await Permission.audio.request();
       }
 
@@ -93,11 +96,38 @@ class MusicController extends GetxController {
       
       Get.snackbar('Downloading', 'Downloading ${track.name}...');
       
-      await Dio().download(track.audioUrl, savePath);
+      // Use a unique ID for notification based on track hash or random
+      final notificationId = track.id.hashCode;
+      
+      await Dio().download(
+        track.audioUrl, 
+        savePath,
+        onReceiveProgress: (received, total) {
+           if (total != -1) {
+             int progress = ((received / total) * 100).toInt();
+             _notificationService.showProgressNotification(
+               notificationId,
+               'Downloading ${track.name}',
+               '$progress%',
+               progress,
+               100
+             );
+           }
+        }
+      );
+      
+      // Show completion
+      _notificationService.showCompletionNotification(
+        notificationId,
+        'Download Complete',
+        '${track.name} has been saved.'
+      );
       
       Get.snackbar('Success', 'Saved to Downloads/JM Music');
     } catch (e) {
       Get.snackbar('Error', 'Download failed: $e');
+      // Ideally cancel or show error notification
+      _notificationService.cancelNotification(track.id.hashCode);
     }
   }
 }
