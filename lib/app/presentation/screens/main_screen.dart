@@ -34,9 +34,9 @@ class MainScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF2E0249),
-            Color(0xFFA91079),
-            Color(0xFF000000),
+            Color(0xFF0F0C29), // Deep dark purple/black
+            Color(0xFF302B63), // Dark violet/blue
+            Color(0xFF24243E), // Dark slate blue
           ],
         ),
       ),
