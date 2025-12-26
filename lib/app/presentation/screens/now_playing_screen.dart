@@ -89,7 +89,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> with SingleTickerPr
             children: [
               Image.asset('assets/icons/app_logo.png', width: 24, height: 24),
               const SizedBox(width: 8),
-              const Text('SM Music', style: TextStyle(color: Colors.white, fontSize: 18)),
+              const Text('Nocturne', style: TextStyle(color: Colors.white, fontSize: 18)),
             ],
           ),
           centerTitle: true,

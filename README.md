@@ -100,12 +100,4 @@ The app uses the following permissions to ensure full functionality:
 
 ---
 
-## 👨‍💻 Author
-
-**Moazzam Samoo**
-
-* Built with ❤️ using Flutter.
-
----
-
-*Note: This is a portfolio project demonstrating advanced mobile app development skills.*
+* Built with ❤️ by Moazzam Samoo.
