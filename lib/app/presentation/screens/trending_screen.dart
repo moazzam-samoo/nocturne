@@ -16,9 +16,6 @@ class TrendingScreen extends StatelessWidget {
       builder: (context) {
         return CustomScrollView(
           slivers: [
-            SliverOverlapInjector(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context)),
-                
             // Screen Title
             const SliverToBoxAdapter(
               child: Padding(

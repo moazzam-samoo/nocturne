@@ -21,9 +21,6 @@ class HomeScreen extends StatelessWidget {
       builder: (context) {
         return CustomScrollView(
           slivers: [
-            SliverOverlapInjector(
-              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-            ),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.only(top: 20.0),
