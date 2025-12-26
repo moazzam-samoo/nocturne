@@ -70,7 +70,6 @@ class PlayerController extends GetxController {
   }
 
   Future<void> playTrack(Track track) async {
-    print("PlayerController: playTrack called for ${track.name}");
     try {
       final MusicController musicController = Get.find<MusicController>();
       List<Track> sourceList = [];

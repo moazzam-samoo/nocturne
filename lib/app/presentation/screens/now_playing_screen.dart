@@ -18,25 +18,52 @@ class NowPlayingScreen extends StatefulWidget {
   State<NowPlayingScreen> createState() => _NowPlayingScreenState();
 }
 
-class _NowPlayingScreenState extends State<NowPlayingScreen> {
+class _NowPlayingScreenState extends State<NowPlayingScreen> with SingleTickerProviderStateMixin {
   final PlayerController playerController = Get.find();
   final MusicController musicController = Get.find();
+  
+  late AnimationController _animationController;
+  Worker? _isPlayingWorker;
+
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    );
+
+    // Sync animation with playback state safely
+    _isPlayingWorker = ever(playerController.isPlaying, (playing) {
+      if (!mounted) return; // Prevent crash if widget is defunct
+      if (playing) {
+        if (!_animationController.isAnimating) {
+          _animationController.repeat();
+        }
+      } else {
+        if (_animationController.isAnimating) {
+          _animationController.stop();
+        }
+      }
+    });
+
+    // Initial check
+    if (playerController.isPlaying.value) {
+      _animationController.repeat();
+    }
   }
 
   @override
   void dispose() {
+    _isPlayingWorker?.dispose(); // Dispose GetX worker
+    _animationController.dispose(); // Dispose animation controller
     super.dispose();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
     return Container(
-         decoration: const BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -99,15 +126,30 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       const SizedBox(height: 20),
-                      _buildRotatingArtwork(),
+                      _buildRotatingArtwork()
+                          .animate()
+                          .fadeIn(duration: 600.ms)
+                          .moveY(begin: 20, end: 0, duration: 600.ms),
                       const SizedBox(height: 30),
-                      _buildTrackInfo(),
+                      _buildTrackInfo()
+                          .animate()
+                          .fadeIn(delay: 200.ms, duration: 600.ms)
+                          .moveY(begin: 20, end: 0),
                       const SizedBox(height: 20),
-                      _buildProgressBar(),
+                      _buildProgressBar()
+                          .animate()
+                          .fadeIn(delay: 400.ms, duration: 600.ms)
+                          .moveY(begin: 20, end: 0),
                        const SizedBox(height: 10),
-                      _buildControls(),
+                      _buildControls()
+                          .animate()
+                          .fadeIn(delay: 600.ms, duration: 600.ms)
+                          .moveY(begin: 20, end: 0),
                        const SizedBox(height: 20),
-                       _buildInfoPanel(),
+                       _buildInfoPanel()
+                          .animate()
+                          .fadeIn(delay: 800.ms, duration: 600.ms)
+                          .moveY(begin: 20, end: 0),
                     ],
                   ),
                 ),
@@ -212,23 +254,31 @@ class _NowPlayingScreenState extends State<NowPlayingScreen> {
                ),
              ),
              // Rotating Image
-             // Rotating Image
-             Container(
-               width: 280,
-               height: 280,
-               decoration: const BoxDecoration(
-                 shape: BoxShape.circle,
-               ),
-               child: ClipOval(
-                 child: Image.network(
-                   track.albumImage, 
-                   fit: BoxFit.cover,
-                   errorBuilder: (context, error, stackTrace) => Image.asset(
-                     'assets/images/music_placeholder.png', 
+             AnimatedBuilder(
+               animation: _animationController,
+               child: Container(
+                 width: 280,
+                 height: 280,
+                 decoration: const BoxDecoration(
+                   shape: BoxShape.circle,
+                 ),
+                 child: ClipOval(
+                   child: Image.network(
+                     track.albumImage, 
                      fit: BoxFit.cover,
+                     errorBuilder: (context, error, stackTrace) => Image.asset(
+                       'assets/images/music_placeholder.png', 
+                       fit: BoxFit.cover,
+                     ),
                    ),
                  ),
                ),
+               builder: (context, child) {
+                 return Transform.rotate(
+                   angle: _animationController.value * 2 * math.pi,
+                   child: child,
+                 );
+               },
              ),
           ],
         );
