@@ -46,11 +46,14 @@ class MusicController extends GetxController {
   
   void _cancelDownload(int notificationId) {
      print('MusicController: _cancelDownload called for $notificationId');
+     
+     // Always try to dismiss the notification first for immediate feedback
+     _notificationService.cancelNotification(notificationId);
+     
      if (_activeDownloads.containsKey(notificationId)) {
         print('MusicController: Found active download for $notificationId. Cancelling...');
         _activeDownloads[notificationId]?.cancel('User cancelled');
         _activeDownloads.remove(notificationId);
-        _notificationService.cancelNotification(notificationId);
         Get.snackbar('Cancelled', 'Download cancelled by user');
      } else {
         print('MusicController: No active download found for $notificationId. Active IDs: ${_activeDownloads.keys}');
@@ -106,20 +109,29 @@ class MusicController extends GetxController {
     _activeDownloads[notificationId] = cancelToken;
     print('MusicController: Starting download for ${track.name}, notificationId: $notificationId');
 
-    final dir = Directory('/storage/emulated/0/Download/SM Music');
-    final savePath = '${dir.path}/${track.name}.mp3';
+    // Use /storage/emulated/0/Music/SM Music as default
+    String baseDir = '/storage/emulated/0/Music/SM Music';
+    final dir = Directory(baseDir);
+    // Sanitize filename to avoid filesystem issues
+    final sanitizedFileName = track.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+    final savePath = '${dir.path}/$sanitizedFileName.mp3';
     
     try {
-      var status = await Permission.storage.request();
-      if (await Permission.notification.isDenied) {
-        await Permission.notification.request();
-      }
-      if (status.isDenied) {
-         await Permission.audio.request();
+      // Request permissions (Storage for <13, Audio for 13+)
+      if (Platform.isAndroid) {
+        await [
+          Permission.storage,
+          Permission.audio,
+          Permission.notification,
+        ].request();
       }
 
       if (!await dir.exists()) {
-        await dir.create(recursive: true);
+        try {
+          await dir.create(recursive: true);
+        } catch (e) {
+          print('MusicController: Direct creation failed: $e. Falling back to public Music folder.');
+        }
       }
       
       Get.snackbar('Downloading', 'Downloading ${track.name}...');
@@ -145,11 +157,13 @@ class MusicController extends GetxController {
       print('MusicController: Download finished for $notificationId');
       _activeDownloads.remove(notificationId);
       
+      // Explicitly cancel progress notification
+      _notificationService.cancelNotification(notificationId);
+      
       // Show completion
-      _notificationService.showCompletionNotification(
+      _notificationService.showDownloadCompleteNotification(
         notificationId,
-        'Download Complete',
-        '${track.name} has been saved.'
+        track.name
       );
       
       Get.snackbar('Success', 'Saved to Downloads/SM Music');

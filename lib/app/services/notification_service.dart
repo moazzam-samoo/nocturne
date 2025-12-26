@@ -7,7 +7,7 @@ class NotificationService {
   // Callback for notification actions
   Future<void> init(void Function(NotificationResponse) onNotificationResponse) async {
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('launcher_icon'); // Use the generated SM Music icon
 
     final InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
@@ -58,13 +58,13 @@ class NotificationService {
             maxProgress: maxProgress,
             progress: progress,
             ongoing: true,
-            // largeIcon: const DrawableResourceAndroidBitmap('ic_launcher'), // Use app icon as placeholder
+            largeIcon: const DrawableResourceAndroidBitmap('launcher_icon'),
             actions: [
               const AndroidNotificationAction(
                 'cancel_download', 
                 'Cancel',
                 showsUserInterface: true,
-                cancelNotification: false, // Handle manually in controller to ensure logic runs
+                cancelNotification: true, // Allow OS to dismiss immediately
               ),
             ],
         );
@@ -104,6 +104,28 @@ class NotificationService {
     );
   }
   
+  Future<void> showDownloadCompleteNotification(int id, String trackName) async {
+    final AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+            'download_complete_channel', 
+            'SM Music Downloads Complete',
+            channelDescription: 'Notifications for finished downloads',
+            importance: Importance.high,
+            priority: Priority.high,
+            largeIcon: const DrawableResourceAndroidBitmap('launcher_icon'),
+        );
+        
+    final NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+        
+    await _notificationsPlugin.show(
+      id,
+      'Download Completed',
+      'Track $trackName is ready! Locate it in your Music folder.',
+      platformChannelSpecifics,
+    );
+  }
+
   Future<void> cancelNotification(int id) async {
     await _notificationsPlugin.cancel(id);
   }
