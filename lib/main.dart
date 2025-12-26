@@ -1,24 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'app/presentation/bindings/initial_binding.dart';
-import 'app/presentation/pages/home_page.dart';
-import 'app/presentation/theme/app_theme.dart';
+import 'app/presentation/screens/home_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'package:just_audio_background/just_audio_background.dart';
+
+Future<void> main() async {
+  try {
+    await JustAudioBackground.init(
+      androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
+      androidNotificationChannelName: 'Audio playback',
+      androidNotificationOngoing: true,
+    );
+  } catch (e) {
+    print('Error initializing JustAudioBackground: $e');
+  }
+  runApp(const JMMusicApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class JMMusicApp extends StatelessWidget {
+  const JMMusicApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Classic Music',
+      title: 'JM Music',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.transparent, // Important for Glassmorphism background
+        fontFamily: 'Outfit', // We'll need to ensure this font is loaded or use Google Fonts
+      ),
       initialBinding: InitialBinding(),
-      home: const HomePage(),
+      home: const HomeScreen(),
     );
   }
 }

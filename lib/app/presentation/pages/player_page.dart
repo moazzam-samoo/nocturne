@@ -4,6 +4,7 @@ import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import '../controllers/player_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
+import 'lyrics_page.dart';
 
 class PlayerPage extends StatelessWidget {
   const PlayerPage({Key? key}) : super(key: key);
@@ -140,7 +141,7 @@ class PlayerPage extends StatelessWidget {
               const Spacer(),
               // Lyrics Button Area
               GestureDetector(
-                onTap: () => Get.to(() => const LyricsPage()),
+                onTap: () => Get.to(() => LyricsPage()),
                 child: GlassContainer(
                   width: 200,
                   height: 50,

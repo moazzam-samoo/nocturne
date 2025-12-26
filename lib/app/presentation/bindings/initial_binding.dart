@@ -1,31 +1,22 @@
 import 'package:get/get.dart';
-import '../../data/providers/jamendo_provider.dart';
+import '../../data/providers/saavn_provider.dart';
 import '../../data/repositories/music_repository_impl.dart';
-import '../../domain/usecases/get_music.dart';
-import '../../domain/usecases/search_music.dart';
-import 'music_controller.dart';
-import 'player_controller.dart';
+import '../controllers/music_controller.dart';
+import '../controllers/player_controller.dart';
 
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
-    // Providers
-    Get.lazyPut(() => JamendoProvider());
+    // 1. Providers
+    Get.lazyPut<SaavnProvider>(() => SaavnProvider());
 
-    // Repositories
-    Get.lazyPut(() => MusicRepositoryImpl(provider: Get.find()));
+    // 2. Repositories
+    Get.lazyPut<MusicRepositoryImpl>(
+        () => MusicRepositoryImpl(provider: Get.find<SaavnProvider>()));
 
-    // UseCases
-    Get.lazyPut(() => GetTrendingMusic(Get.find<MusicRepositoryImpl>()));
-    Get.lazyPut(() => GetRegionalMusic(Get.find<MusicRepositoryImpl>()));
-    Get.lazyPut(() => SearchMusic(Get.find<MusicRepositoryImpl>()));
-
-    // Controllers
-    Get.put(MusicController(
-      getTrendingMusic: Get.find(),
-      getRegionalMusic: Get.find(),
-      searchMusicUseCase: Get.find(),
-    ));
-    Get.put(PlayerController());
+    // 3. Controllers
+    Get.put<PlayerController>(PlayerController()); // Put permanent as Player is global
+    Get.lazyPut<MusicController>(
+        () => MusicController(repository: Get.find<MusicRepositoryImpl>()));
   }
 }

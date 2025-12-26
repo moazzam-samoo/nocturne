@@ -1,7 +1,6 @@
 import '../entities/track.dart';
 
 abstract class MusicRepository {
-  Future<List<Track>> getTrendingMusic();
-  Future<List<Track>> getRegionalMusic(); // For "Indian/Hindi" requirement
-  Future<List<Track>> searchMusic(String query);
+  Future<List<Track>> getTracks({int limit = 50, String tags});
+  Future<List<Track>> searchTracks(String query);
 }

@@ -1,24 +1,24 @@
 import '../../domain/entities/track.dart';
 import '../../domain/repositories/music_repository.dart';
-import '../providers/jamendo_provider.dart';
+import '../providers/saavn_provider.dart';
 
 class MusicRepositoryImpl implements MusicRepository {
-  final JamendoProvider provider;
+  final SaavnProvider provider;
 
   MusicRepositoryImpl({required this.provider});
 
   @override
-  Future<List<Track>> getTrendingMusic() async {
-    return await provider.getTrendingMusic();
+  Future<List<Track>> getTracks({int limit = 10, String tags = ''}) async {
+    // Saavn API uses generic search, so we treat 'tags' as a search query
+    // e.g. "Bollywood", "Hollywood", "Pop"
+    String query = tags.replaceAll('+', ' ');
+    if (query.isEmpty) query = 'Trending';
+
+    return await provider.searchTracks(query);
   }
 
   @override
-  Future<List<Track>> getRegionalMusic() async {
-    return await provider.getRegionalMusic();
-  }
-
-  @override
-  Future<List<Track>> searchMusic(String query) async {
-    return await provider.searchMusic(query);
+  Future<List<Track>> searchTracks(String query) async {
+    return await provider.searchTracks(query);
   }
 }

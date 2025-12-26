@@ -1,79 +1,70 @@
 import 'package:get/get.dart';
 import '../../domain/entities/track.dart';
-import '../../domain/usecases/get_music.dart';
-import '../../domain/usecases/search_music.dart';
+import '../../domain/repositories/music_repository.dart';
 
 class MusicController extends GetxController {
-  final GetTrendingMusic getTrendingMusic;
-  final GetRegionalMusic getRegionalMusic;
-  final SearchMusic searchMusicUseCase;
+  final MusicRepository repository;
 
-  MusicController({
-    required this.getTrendingMusic,
-    required this.getRegionalMusic,
-    required this.searchMusicUseCase,
-  });
-
-  // Observables
-  var trendingTracks = <Track>[].obs;
-  var regionalTracks = <Track>[].obs;
-  var searchResults = <Track>[].obs;
+  MusicController({required this.repository});
   
-  var isTrendingLoading = false.obs;
-  var isRegionalLoading = false.obs;
-  var isSearchLoading = false.obs;
-
-  var trendingError = ''.obs;
-  var regionalError = ''.obs;
-  var searchError = ''.obs;
+  // Observables
+  var tracks = <Track>[].obs;
+  var isLoading = true.obs;
+  var errorMessage = ''.obs;
+  var selectedCategoryIndex = 0.obs; // 0: Indian, 1: Hollywood (International)
 
   @override
   void onInit() {
     super.onInit();
-    fetchTrendingMusic();
-    fetchRegionalMusic();
+    fetchTracksByCategory();
   }
 
-  void fetchTrendingMusic() async {
-    try {
-      isTrendingLoading.value = true;
-      trendingError.value = '';
-      final tracks = await getTrendingMusic();
-      trendingTracks.assignAll(tracks);
-    } catch (e) {
-      trendingError.value = e.toString();
-    } finally {
-      isTrendingLoading.value = false;
-    }
+  void switchCategory(int index) {
+    if (selectedCategoryIndex.value == index) return;
+    selectedCategoryIndex.value = index;
+    fetchTracksByCategory();
   }
 
-  void fetchRegionalMusic() async {
+  void fetchTracksByCategory() async {
+    String tags = selectedCategoryIndex.value == 0 ? 'Latest Bollywood' : 'English Top 50';
+    
     try {
-      isRegionalLoading.value = true;
-      regionalError.value = '';
-      final tracks = await getRegionalMusic();
-      regionalTracks.assignAll(tracks);
+      isLoading(true);
+      errorMessage('');
+      var result = await repository.getTracks(limit: 50, tags: tags);
+      if (result.isNotEmpty) {
+        tracks.assignAll(result);
+      } else {
+        errorMessage('No tracks found.');
+        tracks.clear();
+      }
     } catch (e) {
-      regionalError.value = e.toString();
+      errorMessage(e.toString());
     } finally {
-      isRegionalLoading.value = false;
+      isLoading(false);
     }
   }
 
   void search(String query) async {
     if (query.isEmpty) {
-      searchResults.clear();
+      fetchTracksByCategory();
       return;
     }
+    
     try {
-      isSearchLoading.value = true;
-      searchError.value = '';
-      final tracks = await searchMusicUseCase(query);
-      searchResults.assignAll(tracks);
+      isLoading(true);
+      errorMessage('');
+      var result = await repository.searchTracks(query);
+      if (result.isNotEmpty) {
+        tracks.assignAll(result);
+      } else {
+        errorMessage('No tracks found for "$query"');
+        tracks.clear();
+      }
     } catch (e) {
-      searchError.value = e.toString();
+      errorMessage(e.toString());
     } finally {
-      isSearchLoading.value = false;
+      isLoading(false);
     }
   }
 }
