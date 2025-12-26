@@ -19,33 +19,39 @@ class HomeScreen extends StatelessWidget {
 
     return Builder(
       builder: (context) {
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionTitle('Recently Played'),
-                    const SizedBox(height: 10),
-                    _buildRecentlyPlayedList(musicController, playerController),
-                    const SizedBox(height: 20),
-                    _buildCategoryTabs(musicController),
-                    const SizedBox(height: 10),
-                  ],
+        return RefreshIndicator(
+          onRefresh: () async {
+            await musicController.fetchTracksByCategory();
+          },
+          color: const Color(0xFFA91079),
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionTitle('Recently Played'),
+                      const SizedBox(height: 10),
+                      _buildRecentlyPlayedList(musicController, playerController),
+                      const SizedBox(height: 20),
+                      _buildCategoryTabs(musicController),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            // Use SliverFillRemaining or just another Adapter for the rest
-             SliverToBoxAdapter(
-               child: SizedBox(
-                height: 400, // Fixed height or use SliverList if dynamic
-                child: _buildYouMightLikeList(musicController, playerController)
+              // Use SliverFillRemaining or just another Adapter for the rest
+               SliverToBoxAdapter(
+                 child: SizedBox(
+                  height: 400, // Fixed height or use SliverList if dynamic
+                  child: _buildYouMightLikeList(musicController, playerController)
+                 ),
                ),
-             ),
-             const SliverPadding(padding: EdgeInsets.only(bottom: 100)), // Space for MiniPlayer
-          ],
+               const SliverPadding(padding: EdgeInsets.only(bottom: 100)), // Space for MiniPlayer
+            ],
+          ),
         );
       }
     );
@@ -150,56 +156,57 @@ class HomeScreen extends StatelessWidget {
             final track = controller.tracks[index + 5]; // Skip first 5
             return Padding(
               padding: const EdgeInsets.only(bottom: 15.0),
-              child: GlassContainer(
-                width: double.infinity,
-                height: 80,
-                borderRadius: BorderRadius.circular(20),
-                padding: const EdgeInsets.all(10),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(30), // Circular image
-                      child: CachedNetworkImage(
-                        imageUrl: track.albumImage,
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                         placeholder: (context, url) => Container(color: Colors.white12),
-                         errorWidget: (context, url, error) => const Icon(Icons.error),
+              child: GestureDetector(
+                onTap: () {
+                   player.playTrack(track);
+                   Get.find<MainController>().goToPlayer();
+                },
+                child: GlassContainer(
+                  width: double.infinity,
+                  height: 80,
+                  borderRadius: BorderRadius.circular(20),
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(30), // Circular image
+                        child: CachedNetworkImage(
+                          imageUrl: track.albumImage,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                           placeholder: (context, url) => Container(color: Colors.white12),
+                           errorWidget: (context, url, error) => const Icon(Icons.error),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            track.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              track.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                          Text(
-                            track.artistName,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 13,
+                            Text(
+                              track.artistName,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                         player.playTrack(track);
-                         Get.find<MainController>().goToPlayer();
-                      },
-                      child: Container(
+                      // Keep the play button visual for affordance, but row is actionable
+                      Container(
                         padding: const EdgeInsets.all(8),
                         decoration: const BoxDecoration(
                           color: Color(0xFFA91079), // Accent color
@@ -214,8 +221,8 @@ class HomeScreen extends StatelessWidget {
                         ),
                         child: const Icon(Icons.play_arrow, color: Colors.white, size: 20),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );

@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'dart:io';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../controllers/music_controller.dart';
@@ -91,11 +92,32 @@ class PlayerController extends GetxController {
       final playlist = ConcatenatingAudioSource(
         useLazyPreparation: true,
         children: sourceList.map((t) {
+          // Check for local file first
+          final sanitizedName = t.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+          // Check new Nocturne path
+          final File localFile = File('/storage/emulated/0/Music/Nocturne/$sanitizedName.mp3');
+          
+          Uri audioUri;
+          if (localFile.existsSync()) {
+            audioUri = Uri.file(localFile.path);
+            print('PlayerController: Playing from LOCAL file: ${localFile.path}');
+          } else {
+             // Fallback to old SM Music path for legacy downloads
+             final File legacyFile = File('/storage/emulated/0/Music/SM Music/$sanitizedName.mp3');
+             if (legacyFile.existsSync()) {
+                audioUri = Uri.file(legacyFile.path);
+                print('PlayerController: Playing from LEGACY file: ${legacyFile.path}');
+             } else {
+                audioUri = Uri.parse(t.audioUrl);
+                print('PlayerController: Playing from REMOTE url: ${t.audioUrl}');
+             }
+          }
+
           return AudioSource.uri(
-            Uri.parse(t.audioUrl),
+            audioUri,
             tag: MediaItem(
               id: t.id,
-              album: "SM Music",
+              album: "Nocturne",
               title: t.name,
               artist: t.artistName,
               artUri: Uri.parse(t.albumImage),

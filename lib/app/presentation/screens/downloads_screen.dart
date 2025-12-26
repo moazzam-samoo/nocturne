@@ -42,32 +42,99 @@ class DownloadsScreen extends StatelessWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final track = controller.downloadedTracks[index];
-                    return ListTile(
-                      leading: const Icon(Icons.music_note, color: Colors.white, size: 40),
-                      title: Text(track.name, style: const TextStyle(color: Colors.white)),
-                      subtitle: Text(track.artistName, style: const TextStyle(color: Colors.grey)),
-                       trailing: Row(
-                         mainAxisSize: MainAxisSize.min,
-                         children: [
-                           Obx(() {
-                           final isPlaying = Get.find<PlayerController>().currentTrack.value?.id == track.id &&
-                               Get.find<PlayerController>().isPlaying.value;
-                           return IconButton(
-                             icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.pink),
-                             onPressed: () {
-                               Get.find<PlayerController>().playTrack(track);
-                               Get.find<MainController>().goToPlayer();
-                             },
-                           );
-                         }),
-                           IconButton(
-                             icon: const Icon(Icons.delete, color: Colors.redAccent),
-                             onPressed: () {
-                               controller.deleteDownload(track);
-                             },
-                           ),
-                         ],
-                       ),
+                    return Dismissible(
+                      key: Key('download_${track.id}'),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        color: Colors.red,
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (direction) async {
+                        return await Get.dialog<bool>(
+                          AlertDialog(
+                            backgroundColor: const Color(0xFF24243E),
+                            title: const Text('Delete Download', style: TextStyle(color: Colors.white)),
+                            content: Text('Are you sure you want to delete "${track.name}"?', 
+                                style: const TextStyle(color: Colors.white70)),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Get.back(result: false),
+                                child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+                              ),
+                              TextButton(
+                                onPressed: () => Get.back(result: true),
+                                child: const Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      onDismissed: (direction) {
+                        controller.deleteDownload(track);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        child: GestureDetector(
+                          onTap: () {
+                            // Play the track when the row is clicked
+                            Get.find<PlayerController>().playTrack(track);
+                            Get.find<MainController>().goToPlayer();
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(color: Colors.white24, width: 1), // The requested border
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Icon(Icons.music_note, color: Colors.white, size: 30),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        track.name,
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        track.artistName,
+                                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Obx(() {
+                                  final isPlaying = Get.find<PlayerController>().currentTrack.value?.id == track.id &&
+                                      Get.find<PlayerController>().isPlaying.value;
+                                  return IconButton(
+                                    icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow,
+                                        color: const Color(0xFFA91079)),
+                                    onPressed: () {
+                                      Get.find<PlayerController>().playTrack(track);
+                                      Get.find<MainController>().goToPlayer();
+                                    },
+                                  );
+                                }),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     );
                  },
                  childCount: controller.downloadedTracks.length,

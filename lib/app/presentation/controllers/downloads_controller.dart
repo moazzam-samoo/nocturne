@@ -26,7 +26,7 @@ class DownloadsController extends GetxController {
   Future<void> deleteDownload(Track track) async {
     try {
       // 1. Resolve path logic (copied from MusicController for now, arguably should be in a shared helper)
-       String baseDir = '/storage/emulated/0/Music/SM Music';
+       String baseDir = '/storage/emulated/0/Music/Nocturne';
        final sanitizedFileName = track.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
        final path = '$baseDir/$sanitizedFileName.mp3';
        

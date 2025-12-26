@@ -64,7 +64,7 @@ class MusicController extends GetxController {
      }
   }
 
-  void fetchTracksByCategory() async {
+  Future<void> fetchTracksByCategory() async {
     String tags = selectedCategoryIndex.value == 0 ? 'Latest Bollywood' : 'English Hit';
     
     try {
@@ -114,7 +114,7 @@ class MusicController extends GetxController {
     print('MusicController: Starting download for ${track.name}, notificationId: $notificationId');
 
     // Use /storage/emulated/0/Music/SM Music as default
-    String baseDir = '/storage/emulated/0/Music/SM Music';
+    String baseDir = '/storage/emulated/0/Music/Nocturne';
     final dir = Directory(baseDir);
     // Sanitize filename to avoid filesystem issues
     final sanitizedFileName = track.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
@@ -170,7 +170,7 @@ class MusicController extends GetxController {
         track.name
       );
       
-      Get.snackbar('Success', 'Saved to Downloads/SM Music');
+      Get.snackbar('Success', 'Saved to Downloads/Nocturne');
       // Add to persistent storage
       Get.find<StorageService>().addDownload(track);
     } catch (e) {

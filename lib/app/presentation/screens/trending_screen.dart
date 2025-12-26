@@ -14,83 +14,89 @@ class TrendingScreen extends StatelessWidget {
 
     return Builder(
       builder: (context) {
-        return CustomScrollView(
-          slivers: [
-            // Screen Title
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: Text(
-                  'Trending Hits (2020-2025)',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Outfit',
+        return RefreshIndicator(
+          onRefresh: () async {
+            await controller.fetchTrending();
+          },
+          color: Colors.pink,
+          child: CustomScrollView(
+            slivers: [
+              // Screen Title
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                  child: Text(
+                    'Trending Hits (2020-2025)',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Outfit',
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            Obx(() {
-              if (controller.isLoading.value) {
-                return const SliverFillRemaining(
-                    child: Center(
-                        child:
-                            CircularProgressIndicator(color: Colors.pink)));
-              }
+              Obx(() {
+                if (controller.isLoading.value) {
+                  return const SliverFillRemaining(
+                      child: Center(
+                          child:
+                              CircularProgressIndicator(color: Colors.pink)));
+                }
 
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final track = controller.trendingTracks[index];
-                    return ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(track.albumImage,
-                            width: 50, height: 50, fit: BoxFit.cover),
-                      ),
-                      title: Text(track.name,
-                          style: const TextStyle(color: Colors.white)),
-                      subtitle: Text(track.artistName,
-                          style: const TextStyle(color: Colors.grey)),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.download,
-                                color: Colors.white),
-                            onPressed: () =>
-                                musicController.downloadTrack(track),
-                          ),
-                            Obx(() {
-                            final isPlaying = Get.find<PlayerController>().currentTrack.value?.id == track.id &&
-                                Get.find<PlayerController>().isPlaying.value;
-                            return IconButton(
-                              icon: Icon(
-                                isPlaying ? Icons.pause : Icons.play_arrow,
-                                color: Colors.pink,
-                              ),
-                              onPressed: () {
-                                Get.find<PlayerController>().playTrack(track);
-                                mainController.goToPlayer();
-                              },
-                            );
-                          }),
-                        ],
-                      ),
-                      onTap: () {
-                        Get.find<PlayerController>().playTrack(track);
-                        mainController.goToPlayer();
-                      },
-                    );
-                  },
-                  childCount: controller.trendingTracks.length,
-                ),
-              );
-            }),
-            const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-          ],
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final track = controller.trendingTracks[index];
+                      return ListTile(
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(track.albumImage,
+                              width: 50, height: 50, fit: BoxFit.cover),
+                        ),
+                        title: Text(track.name,
+                            style: const TextStyle(color: Colors.white)),
+                        subtitle: Text(track.artistName,
+                            style: const TextStyle(color: Colors.grey)),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.download,
+                                  color: Colors.white),
+                              onPressed: () =>
+                                  musicController.downloadTrack(track),
+                            ),
+                              Obx(() {
+                              final isPlaying = Get.find<PlayerController>().currentTrack.value?.id == track.id &&
+                                  Get.find<PlayerController>().isPlaying.value;
+                              return IconButton(
+                                icon: Icon(
+                                  isPlaying ? Icons.pause : Icons.play_arrow,
+                                  color: Colors.pink,
+                                ),
+                                onPressed: () {
+                                  Get.find<PlayerController>().playTrack(track);
+                                  mainController.goToPlayer();
+                                },
+                              );
+                            }),
+                          ],
+                        ),
+                        onTap: () {
+                          Get.find<PlayerController>().playTrack(track);
+                          mainController.goToPlayer();
+                        },
+                      );
+                    },
+                    childCount: controller.trendingTracks.length,
+                  ),
+                );
+              }),
+              const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+            ],
+          ),
         );
       }
     );

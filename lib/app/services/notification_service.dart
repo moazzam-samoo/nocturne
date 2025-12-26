@@ -48,8 +48,8 @@ class NotificationService {
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
             'download_channel', 
-            'SM Music Downloads',
-            channelDescription: 'Show download progress for SM Music',
+            'Nocturne Downloads',
+            channelDescription: 'Show download progress for Nocturne',
             importance: Importance.low,
             priority: Priority.low,
             playSound: false,
@@ -108,7 +108,7 @@ class NotificationService {
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
             'download_complete_channel', 
-            'SM Music Downloads Complete',
+            'Nocturne Downloads Complete',
             channelDescription: 'Notifications for finished downloads',
             importance: Importance.high,
             priority: Priority.high,
@@ -121,7 +121,7 @@ class NotificationService {
     await _notificationsPlugin.show(
       id,
       'Download Completed',
-      'Track $trackName is ready! Locate it in your Music folder.',
+      'Track $trackName is ready! Listen in Nocturne.',
       platformChannelSpecifics,
     );
   }
