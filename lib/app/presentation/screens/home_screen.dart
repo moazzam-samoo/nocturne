@@ -65,7 +65,11 @@ class HomeScreen extends StatelessWidget {
             height: 50,
             padding: const EdgeInsets.all(12),
             borderRadius: BorderRadius.circular(15),
-            child: const Icon(Icons.grid_view, color: Colors.white, size: 24),
+            child: Image.asset(
+              'assets/icons/app_logo.png',
+              width: 30,
+              height: 30,
+            ),
           ),
           GestureDetector(
             onTap: () => Get.to(() => const SearchScreen()),

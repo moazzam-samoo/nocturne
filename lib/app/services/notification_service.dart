@@ -48,8 +48,8 @@ class NotificationService {
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
             'download_channel', 
-            'Downloads',
-            channelDescription: 'Show download progress',
+            'SM Music Downloads',
+            channelDescription: 'Show download progress for SM Music',
             importance: Importance.low,
             priority: Priority.low,
             playSound: false,
@@ -58,6 +58,7 @@ class NotificationService {
             maxProgress: maxProgress,
             progress: progress,
             ongoing: true,
+            // largeIcon: const DrawableResourceAndroidBitmap('ic_launcher'), // Use app icon as placeholder
             actions: [
               const AndroidNotificationAction(
                 'cancel_download', 

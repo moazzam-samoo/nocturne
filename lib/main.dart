@@ -20,7 +20,7 @@ class JMMusicApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'JM Music',
+      title: 'SM Music',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

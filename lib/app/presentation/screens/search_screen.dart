@@ -38,7 +38,14 @@ class SearchScreen extends StatelessWidget {
                Get.back();
             },
           ),
-          title: const Text('Search', style: TextStyle(color: Colors.white)),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset('assets/icons/app_logo.png', width: 24, height: 24),
+              const SizedBox(width: 8),
+              const Text('Search', style: TextStyle(color: Colors.white)),
+            ],
+          ),
         ),
         body: SafeArea(
           child: Column(

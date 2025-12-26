@@ -45,20 +45,27 @@ class LyricsScreen extends StatelessWidget {
                 icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                 onPressed: () => Get.back(),
               ),
-              title: const Text("Lyrics", style: TextStyle(color: Colors.white)),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset('assets/icons/app_logo.png', width: 24, height: 24),
+                  const SizedBox(width: 8),
+                  const Text("Lyrics", style: TextStyle(color: Colors.white)),
+                ],
+              ),
             ),
             body: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: Column(
-                  children: [
+                   children: [
                     GlassContainer(
                        width: double.infinity,
                        height: 600,
                        padding: const EdgeInsets.all(20),
                        child: const Center(
                          child: Text(
-                           "Synchronized lyrics are not available in the public Jamendo API.\n\nImagine beautiful scrolling text here matching the rhythm of the music.",
+                           "Synchronized lyrics are not available in the public SM Music API.\n\nImagine beautiful scrolling text here matching the rhythm of the music.",
                            textAlign: TextAlign.center,
                            style: TextStyle(
                              color: Colors.white,

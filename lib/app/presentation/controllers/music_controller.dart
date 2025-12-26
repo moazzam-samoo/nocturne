@@ -106,6 +106,7 @@ class MusicController extends GetxController {
     _activeDownloads[notificationId] = cancelToken;
     print('MusicController: Starting download for ${track.name}, notificationId: $notificationId');
 
+    final dir = Directory('/storage/emulated/0/Download/SM Music');
     final savePath = '${dir.path}/${track.name}.mp3';
     
     try {
@@ -151,7 +152,7 @@ class MusicController extends GetxController {
         '${track.name} has been saved.'
       );
       
-      Get.snackbar('Success', 'Saved to Downloads/JM Music');
+      Get.snackbar('Success', 'Saved to Downloads/SM Music');
     } catch (e) {
       print('MusicController: Download error for $notificationId: $e');
       
