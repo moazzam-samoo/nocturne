@@ -9,6 +9,7 @@ class PlayerController extends GetxController {
 
   // Observables
   var currentTrack = Rxn<Track>();
+  var currentQueue = <Track>[].obs; // Track the currently playing list
   var isPlaying = false.obs;
   var progress = Duration.zero.obs;
   var totalDuration = Duration.zero.obs;
@@ -29,11 +30,8 @@ class PlayerController extends GetxController {
 
     // Listen to current item index to update currentTrack
     _audioPlayer.currentIndexStream.listen((index) {
-      if (index != null) {
-        final MusicController musicController = Get.find<MusicController>();
-        if (index < musicController.tracks.length) {
-          currentTrack.value = musicController.tracks[index];
-        }
+      if (index != null && index < currentQueue.length) {
+         currentTrack.value = currentQueue[index];
       }
     });
 
@@ -56,10 +54,28 @@ class PlayerController extends GetxController {
   Future<void> playTrack(Track track) async {
     try {
       final MusicController musicController = Get.find<MusicController>();
-      final allTracks = musicController.tracks;
-      final index = allTracks.indexWhere((t) => t.id == track.id);
+      List<Track> sourceList = [];
+
+      // Determine the source context for the track
+      // Check if it exists in the main category tracks
+      if (musicController.tracks.any((t) => t.id == track.id)) {
+        sourceList = musicController.tracks;
+      } 
+      // Check if it exists in search results
+      else if (musicController.searchResults.any((t) => t.id == track.id)) {
+        sourceList = musicController.searchResults;
+      } 
+      // Fallback: Just play this single track
+      else {
+        sourceList = [track];
+      }
+
+      // Update the current queue reference
+      currentQueue.assignAll(sourceList);
+
+      final index = sourceList.indexWhere((t) => t.id == track.id);
       
-      if (index == -1) return; // Should not happen
+      if (index == -1) return; 
 
       // If playing the same track, just toggle play/pause
       if (currentTrack.value?.id == track.id) {
@@ -71,10 +87,10 @@ class PlayerController extends GetxController {
          return;
       }
       
-      // Create a playlist from all tracks
+      // Create a playlist from sourceList
       final playlist = ConcatenatingAudioSource(
         useLazyPreparation: true,
-        children: allTracks.map((t) {
+        children: sourceList.map((t) {
           return AudioSource.uri(
             Uri.parse(t.audioUrl),
             tag: MediaItem(
