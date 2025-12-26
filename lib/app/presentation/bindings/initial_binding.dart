@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../data/providers/saavn_provider.dart';
 import '../../services/storage_service.dart';
 import '../../data/repositories/music_repository_impl.dart';
+import '../../domain/repositories/music_repository.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 
@@ -15,13 +16,14 @@ class InitialBinding extends Bindings {
     Get.lazyPut<SaavnProvider>(() => SaavnProvider());
 
     // 2. Repositories
-    Get.lazyPut<MusicRepositoryImpl>(
+    // Bind interface to implementation
+    Get.lazyPut<MusicRepository>(
         () => MusicRepositoryImpl(provider: Get.find<SaavnProvider>()));
 
     // 3. Controllers
     Get.put<PlayerController>(PlayerController()); // Put permanent as Player is global
     Get.put<MusicController>(
-        MusicController(repository: Get.find<MusicRepositoryImpl>()), permanent: true);
+        MusicController(repository: Get.find<MusicRepository>()), permanent: true);
         
     // 4. Feature Controllers (Lazy load or put here)
     // Main layout controller

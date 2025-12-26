@@ -16,9 +16,10 @@ class MainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure controllers are put
+    // Ensure controllers are ready
     final MainController mainController = Get.put(MainController());
-    final MusicController musicController = Get.put(MusicController(repository: Get.find())); // Ensure repository is there
+    // MusicController is already permanently loaded in InitialBinding
+    final MusicController musicController = Get.find<MusicController>(); 
 
     final List<Widget> screens = [
       const HomeScreen(),
