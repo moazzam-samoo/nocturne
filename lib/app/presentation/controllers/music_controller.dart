@@ -118,7 +118,7 @@ class MusicController extends GetxController {
     final dir = Directory(baseDir);
     // Sanitize filename to avoid filesystem issues
     final sanitizedFileName = track.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
-    final savePath = '${dir.path}/$sanitizedFileName.mp3';
+    String savePath = '${dir.path}/$sanitizedFileName.mp3';
     
     try {
       // Request permissions based on Android version
@@ -146,26 +146,66 @@ class MusicController extends GetxController {
           print('MusicController: Direct creation failed: $e. Falling back to public Music folder.');
         }
       }
+
+      // Check if file already exists and delete it to prevent PathExistsException
+      final file = File(savePath);
+      if (await file.exists()) {
+        try {
+          await file.delete();
+          print('MusicController: Deleted existing file at $savePath');
+        } catch (e) {
+          print('MusicController: Check/Delete failed: $e');
+          // Fallback: If delete fails (permission denied), create a unique filename
+          print('MusicController: Generating unique filename due to delete failure.');
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          savePath = '${dir.path}/${sanitizedFileName}_$timestamp.mp3';
+        }
+      }
       
       Get.snackbar('Downloading', 'Downloading ${track.name}...');
       
-      await Dio().download(
-        track.audioUrl, 
-        savePath,
-        cancelToken: cancelToken,
-        onReceiveProgress: (received, total) {
-           if (total != -1) {
-             int progress = ((received / total) * 100).toInt();
-             _notificationService.showProgressNotification(
-               notificationId,
-               'Downloading ${track.name}',
-               '$progress%',
-               progress,
-               100
-             );
-           }
-        }
-      );
+      try {
+        await Dio().download(
+          track.audioUrl, 
+          savePath,
+          cancelToken: cancelToken,
+          onReceiveProgress: (received, total) {
+             if (total != -1) {
+               int progress = ((received / total) * 100).toInt();
+               _notificationService.showProgressNotification(
+                 notificationId,
+                 'Downloading ${track.name}',
+                 '$progress%',
+                 progress,
+                 100
+               );
+             }
+          }
+        );
+      } catch (e) {
+        // Retry logic: If download failed (likely PathExistsException), try with unique name
+        print('MusicController: Primary download failed: $e. Retrying with unique filename...');
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        savePath = '${dir.path}/${sanitizedFileName}_$timestamp.mp3';
+        
+        await Dio().download(
+          track.audioUrl, 
+          savePath,
+          cancelToken: cancelToken,
+          onReceiveProgress: (received, total) {
+             if (total != -1) {
+               int progress = ((received / total) * 100).toInt();
+               _notificationService.showProgressNotification(
+                 notificationId,
+                 'Downloading ${track.name}',
+                 '$progress%',
+                 progress,
+                 100
+               );
+             }
+          }
+        );
+      }
       
       print('MusicController: Download finished for $notificationId');
       _activeDownloads.remove(notificationId);
