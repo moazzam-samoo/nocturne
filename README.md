@@ -10,41 +10,27 @@ SM Music (formerly JM Music) is a modern, feature-rich music streaming and downl
 
 ### 🎧 Immersive Audio Experience
 
-* **High-Quality Streaming:** Seamless playback of "Indian", "Hindi", and "Hollywood" tracks via REST APIs.
-* **Background Playback:** Full support for background audio with notification controls (Play, Pause, Next, Previous) using `just_audio_background`.
-* **Dynamic UI:** Rotating album art animation, real-time audio waveform visualization, and glassmorphism design elements.
+* **API Integration:** Powered by **Saavn API** for a vast library of Bollywood, Indian Regional, and International hits. Use **Jamendo API** as a fallback/legacy source.
+* **High-Quality Streaming:** Seamless playback with optimized buffering and bitrate selection.
+* **Background Playback:** Robust service using `just_audio_background` keeps music playing when the app is closed or screen is off.
+* **Dynamic Visuals:** Rotating album art, real-time reactive buttons, and "Nocturne" dark-themed glassmorphism UI.
 
-### 📥 robust Download Manager
+### 📥 Robust Offline System
 
-* **Download to Storage:** Save your favorite tracks directly to your device's storage (`/Music/SM Music/`) for offline listening.
-* **Smart Notifications:** Real-time progress bar in the notification shade with "Cancel" functionality.
-* **Completion Alerts:** Get notified immediately when a track is ready to play.
-* **Resilient Storage:** Handled complex Android 13+ storage permissions and path resolution for maximum compatibility.
-
-### 🎨 Premium Design System
-
-* **Glassmorphism UI:** Featured frosted glass effects using `GlassContainer` widgets.
-* **Neon Aesthetics:** Vibrant, neon-style branding with deep purple and pink gradients.
-* **Animated Interactions:** Smooth entrance animations and interactive elements using `flutter_animate`.
-
-### 🔍 Discovery & Navigation
-
-* **Smart Search:** Find any song instantly with the dedicated Search Screen.
-* **Category Tabs:** Easily switch between "Indian Songs" and "Hollywood Hits" on the Home Screen.
-* **Lyrics View:** Dedicated screen for viewing song lyrics (placeholder ready for API integration).
+* **Download Manager:** Saves tracks to `/Music/Nocturne/` with automatic duplicate handling (timestamps for unique filenames).
+* **Offline-First Playback:** Player intelligently prioritizes local files over network streams to save data.
+* **Smart Notifications:** Interactive progress bars for downloads, with "Cancel" and "Retry" logic built-in.
 
 ---
 
 ## 🛠️ Technology Stack
 
-* **Framework:** Flutter (Dart)
-* **State Management:** GetX (Reactive State Management)
-* **Architecture:** Clean Architecture (Domain, Data, Presentation Layers)
-* **Audio Engine:** `just_audio`, `just_audio_background`
-* **Networking:** `dio`, `http`
-* **Local Storage:** `path_provider`, `permission_handler`
-* **Notifications:** `flutter_local_notifications`
-* **UI Components:** `flutter_animate`, `audio_video_progress_bar`, `google_fonts`, `cached_network_image`
+* **Framework:** Flutter 3.10+ (Dart 3.0)
+* **State Management:** GetX (Controllers, Reactivity, Dependency Injection)
+* **Audio Engine:** `just_audio` (Playback), `audio_session` (Focus handling)
+* **Networking:** `dio` (Downloads), `http` (API Keys)
+* **Persistence:** `hive` / `get_storage` (Favorites, Settings), `permission_handler` (Android 13+ support)
+* **UI/UX:** `google_nav_bar`, `flutter_animate`, `glass_kit`
 
 ---
 
