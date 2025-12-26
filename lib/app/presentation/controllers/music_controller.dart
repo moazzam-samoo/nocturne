@@ -9,6 +9,7 @@ import '../services/notification_service.dart';
 class MusicController extends GetxController {
   final MusicRepository repository;
   final NotificationService _notificationService = NotificationService();
+  final Map<int, CancelToken> _activeDownloads = {};
 
   MusicController({required this.repository});
   
@@ -21,7 +22,16 @@ class MusicController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _notificationService.init(); // Initialize notifications
+    _notificationService.init((response) { 
+        if (response.actionId == 'cancel_download') {
+           if (response.payload != null) {
+              int? id = int.tryParse(response.payload!);
+              if (id != null) {
+                 _cancelDownload(id);
+              }
+           }
+        }
+    });
     fetchTracksByCategory();
   }
 
@@ -29,6 +39,15 @@ class MusicController extends GetxController {
     if (selectedCategoryIndex.value == index) return;
     selectedCategoryIndex.value = index;
     fetchTracksByCategory();
+  }
+  
+  void _cancelDownload(int notificationId) {
+     if (_activeDownloads.containsKey(notificationId)) {
+        _activeDownloads[notificationId]?.cancel('User cancelled');
+        _activeDownloads.remove(notificationId);
+        _notificationService.cancelNotification(notificationId);
+        Get.snackbar('Cancelled', 'Download cancelled by user');
+     }
   }
 
   void fetchTracksByCategory() async {
@@ -75,14 +94,15 @@ class MusicController extends GetxController {
   }
 
   Future<void> downloadTrack(Track track) async {
+    final notificationId = track.id.hashCode;
+    final cancelToken = CancelToken();
+    _activeDownloads[notificationId] = cancelToken;
+
     try {
       var status = await Permission.storage.request();
-      
-      // Request notification permission for Android 13+
       if (await Permission.notification.isDenied) {
         await Permission.notification.request();
       }
-
       if (status.isDenied) {
          await Permission.audio.request();
       }
@@ -96,12 +116,10 @@ class MusicController extends GetxController {
       
       Get.snackbar('Downloading', 'Downloading ${track.name}...');
       
-      // Use a unique ID for notification based on track hash or random
-      final notificationId = track.id.hashCode;
-      
       await Dio().download(
         track.audioUrl, 
         savePath,
+        cancelToken: cancelToken,
         onReceiveProgress: (received, total) {
            if (total != -1) {
              int progress = ((received / total) * 100).toInt();
@@ -116,6 +134,8 @@ class MusicController extends GetxController {
         }
       );
       
+      _activeDownloads.remove(notificationId);
+      
       // Show completion
       _notificationService.showCompletionNotification(
         notificationId,
@@ -125,9 +145,15 @@ class MusicController extends GetxController {
       
       Get.snackbar('Success', 'Saved to Downloads/JM Music');
     } catch (e) {
-      Get.snackbar('Error', 'Download failed: $e');
-      // Ideally cancel or show error notification
-      _notificationService.cancelNotification(track.id.hashCode);
+      if (CancelToken.isCancel(e as DioException)) {
+          // Already handled cleanup in _cancelDownload usually, but ensure removal
+          _activeDownloads.remove(notificationId);
+          // Notification already cancelled
+      } else {
+          Get.snackbar('Error', 'Download failed: $e');
+          _notificationService.cancelNotification(notificationId);
+          _activeDownloads.remove(notificationId);
+      }
     }
   }
 }

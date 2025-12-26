@@ -1,20 +1,29 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  Future<void> init() async {
+  // Callback for notification actions
+  Future<void> init(void Function(NotificationResponse) onNotificationResponse) async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings initializationSettings =
+    final InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
 
-    await _notificationsPlugin.initialize(initializationSettings);
+    await _notificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: onNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+    );
     
     _createNotificationChannel();
+  }
+  
+  // Create a static method for background handling if needed, though simpler for now
+  static void notificationTapBackground(NotificationResponse notificationResponse) {
+    // Handle background interaction
   }
   
   Future<void> _createNotificationChannel() async {
@@ -22,7 +31,7 @@ class NotificationService {
       'download_channel', // id
       'Downloads', // title
       description: 'Used for showing download progress',
-      importance: Importance.low, // Low importance suppresses sound/vibration for progress updates
+      importance: Importance.low, 
       playSound: false,
     );
      
@@ -43,7 +52,16 @@ class NotificationService {
             showProgress: true,
             maxProgress: maxProgress,
             progress: progress,
-            ongoing: true);
+            ongoing: true,
+            actions: [
+              const AndroidNotificationAction(
+                'cancel_download', 
+                'Cancel',
+                showsUserInterface: false,
+                cancelNotification: true,
+              ),
+            ],
+        );
             
     final NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
@@ -53,6 +71,7 @@ class NotificationService {
       title,
       body,
       platformChannelSpecifics,
+      payload: id.toString(), // Pass ID as payload to identifying which download to cancel
     );
   }
 
