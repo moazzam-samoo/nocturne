@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../domain/entities/track.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
+import '../controllers/main_controller.dart';
 import '../widgets/glass_container.dart';
 import 'now_playing_screen.dart';
 import 'search_screen.dart';
@@ -16,39 +17,26 @@ class HomeScreen extends StatelessWidget {
     final MusicController musicController = Get.find();
     final PlayerController playerController = Get.find();
 
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF2E0249), // Deep Purple
-            Color(0xFFA91079), // Pinkish Purple
-            Color(0xFF570A57), // Dark Violet
-            Color(0xFF000000), // Black
+    return Scaffold(
+      backgroundColor: Colors.transparent, 
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 20),
+            _buildSectionTitle('Recently Played'),
+            const SizedBox(height: 10),
+            _buildRecentlyPlayedList(musicController, playerController),
+            const SizedBox(height: 20),
+            _buildCategoryTabs(musicController),
+            const SizedBox(height: 10),
+            Expanded(
+              child: _buildYouMightLikeList(musicController, playerController),
+            ),
+             // Miniplayer removed as we have a dedicated Player Tab, but could be added back globally if needed.
+             // For now, let's keep the screen clean.
           ],
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent, // Important
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 20),
-              _buildSectionTitle('Recently Played'),
-              const SizedBox(height: 10),
-              _buildRecentlyPlayedList(musicController, playerController),
-              const SizedBox(height: 20),
-              _buildCategoryTabs(musicController),
-              const SizedBox(height: 10),
-              Expanded(
-                child: _buildYouMightLikeList(musicController, playerController),
-              ),
-              _buildMiniPlayer(playerController),
-            ],
-          ),
         ),
       ),
     );
@@ -128,7 +116,10 @@ class HomeScreen extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(right: 15.0),
               child: GestureDetector(
-                onTap: () => player.playTrack(track),
+                onTap: () {
+                   player.playTrack(track);
+                   Get.find<MainController>().goToPlayer();
+                },
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -226,7 +217,10 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () => player.playTrack(track),
+                      onTap: () {
+                         player.playTrack(track);
+                         Get.find<MainController>().goToPlayer();
+                      },
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: const BoxDecoration(
@@ -252,89 +246,6 @@ class HomeScreen extends StatelessWidget {
      });
   }
 
-  Widget _buildMiniPlayer(PlayerController player) {
-    return Obx(() {
-      final track = player.currentTrack.value;
-      if (track == null) return const SizedBox.shrink();
-
-      return GestureDetector(
-        onTap: () => Get.to(() => const NowPlayingScreen()),
-        child: Container(
-          margin: const EdgeInsets.all(20),
-          child: GlassContainer(
-            width: double.infinity,
-            height: 80,
-            borderRadius: BorderRadius.circular(40),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              children: [
-                Hero(
-                  tag: 'mini_player_art_${track.id}',
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: CachedNetworkImage(
-                      imageUrl: track.albumImage,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        track.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        track.artistName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.favorite_border, color: Colors.white),
-                  onPressed: () {},
-                ),
-                GestureDetector(
-                  onTap: () {
-                    if (player.isPlaying.value) {
-                      player.pause();
-                    } else {
-                      player.resume();
-                    }
-                  },
-                  child: Container(
-                     padding: const EdgeInsets.all(10),
-                      decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                    child: Icon(
-                      player.isPlaying.value ? Icons.pause : Icons.play_arrow,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    });
-  }
 
   Widget _buildCategoryTabs(MusicController controller) {
     return Padding(

@@ -1,77 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../controllers/player_controller.dart';
-import '../pages/player_page.dart';
+import '../screens/now_playing_screen.dart';
 import 'glass_container.dart';
 
 class MiniPlayer extends StatelessWidget {
-  const MiniPlayer({Key? key}) : super(key: key);
+  const MiniPlayer({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final PlayerController controller = Get.find();
+    final PlayerController player = Get.find<PlayerController>();
 
     return Obx(() {
-      final track = controller.currentTrack.value;
+      final track = player.currentTrack.value;
       if (track == null) return const SizedBox.shrink();
 
       return GestureDetector(
-        onTap: () => Get.to(() => const PlayerPage(), transition: Transition.downToUp),
+        onTap: () => Get.to(() => const NowPlayingScreen(), transition: Transition.downToUp),
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: const EdgeInsets.fromLTRB(10, 0, 10, 10), // Margin for floating effect
           child: GlassContainer(
-            height: 70,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            width: double.infinity,
+            height: 70, // Slightly compact
+             borderRadius: BorderRadius.circular(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                // Art
                 Hero(
-                  tag: 'album_art_${track.id}',
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(25), // Circular
-                      image: DecorationImage(
-                        image: NetworkImage(track.albumImage),
-                        fit: BoxFit.cover,
-                      ),
+                  tag: 'mini_player_art_${track.id}',
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: CachedNetworkImage(
+                      imageUrl: track.albumImage,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(color: Colors.white12),
+                      errorWidget: (context, url, error) => const Icon(Icons.music_note, color: Colors.white),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                
-                // Info
                 Expanded(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        track.title,
+                        track.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                       Text(
                         track.artistName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12, color: Colors.white70),
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                     ],
                   ),
                 ),
-
-                // Controls
                 IconButton(
                   icon: Icon(
-                    controller.isPlaying.value ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                    player.isPlaying.value ? Icons.pause_circle_filled : Icons.play_circle_fill,
                     color: Colors.white,
-                    size: 40,
+                    size: 36,
                   ),
-                  onPressed: controller.togglePlayPause,
+                  onPressed: () {
+                    if (player.isPlaying.value) {
+                      player.pause();
+                    } else {
+                      player.resume();
+                    }
+                  },
                 ),
               ],
             ),

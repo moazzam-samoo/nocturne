@@ -54,7 +54,7 @@ class SaavnProvider {
         audioUrl = bestUrlObj['link'] ?? bestUrlObj['url'];
     }
 
-    // Handle artists (primaryArtists can be a string or list logic depending on API version, usually a string here)
+    // Handle artists
     String artist = 'Unknown Artist';
     if (json['primaryArtists'] != null) {
         artist = json['primaryArtists'].toString();
@@ -67,6 +67,12 @@ class SaavnProvider {
       albumImage: imageUrl,
       audioUrl: audioUrl,
       duration: json['duration'] != null ? int.tryParse(json['duration'].toString()) ?? 0 : 0,
+      album: json['album'] != null && json['album']['name'] != null ? json['album']['name'] : (json['albumName'] ?? ''),
+      year: json['year'] ?? '',
+      genre: json['language'] ?? 'Unknown', // Sometimes language serves as genre in this API
+      releaseDate: json['releaseDate'] ?? '',
+      popularity: json['playCount']?.toString() ?? '',
+      hasLyrics: json['hasLyrics'] == 'true' || json['hasLyrics'] == true,
     );
   }
 }

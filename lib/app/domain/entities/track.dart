@@ -5,6 +5,14 @@ class Track {
   final String albumImage;
   final String audioUrl;
   final int duration;
+  
+  // New Metadata Fields
+  final String album;
+  final String year;
+  final String genre;
+  final String releaseDate;
+  final String popularity;
+  final bool hasLyrics;
 
   Track({
     required this.id,
@@ -13,5 +21,11 @@ class Track {
     required this.albumImage,
     required this.audioUrl,
     required this.duration,
+    this.album = '',
+    this.year = '',
+    this.genre = '',
+    this.releaseDate = '',
+    this.popularity = '',
+    this.hasLyrics = false,
   });
 }

@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../domain/entities/track.dart';
 import '../../domain/repositories/music_repository.dart';
 import '../../services/notification_service.dart';
+import '../../services/storage_service.dart';
 
 class MusicController extends GetxController {
   final MusicRepository repository;
@@ -167,6 +168,8 @@ class MusicController extends GetxController {
       );
       
       Get.snackbar('Success', 'Saved to Downloads/SM Music');
+      // Add to persistent storage
+      Get.find<StorageService>().addDownload(track);
     } catch (e) {
       print('MusicController: Download error for $notificationId: $e');
       

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
+import '../controllers/main_controller.dart';
 import '../widgets/glass_container.dart';
 
 class SearchScreen extends StatelessWidget {
@@ -142,17 +143,20 @@ class SearchScreen extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.play_circle_fill, color: Color(0xFFA91079), size: 40),
-                                onPressed: () {
-                                  playerController.playTrack(track);
-                                  Get.snackbar('Playing', 'Now playing ${track.name}', 
-                                    snackPosition: SnackPosition.BOTTOM,
-                                    backgroundColor: Colors.white24,
-                                    colorText: Colors.white,
-                                  );
-                                },
-                              ),
+                                IconButton(
+                                  icon: const Icon(Icons.play_circle_fill, color: Color(0xFFA91079), size: 40),
+                                  onPressed: () {
+                                    playerController.playTrack(track);
+                                    Get.back(); // Close Search Screen
+                                    // Use mainService/Controller to switch tab
+                                    try { 
+                                       final mainController = Get.find<MainController>(); // Using conditional import or dynamic find
+                                       mainController.goToPlayer();
+                                    } catch(e) {
+                                       print("MainController not found, likely handled by Home/Search flow separately");
+                                    }
+                                  },
+                                ),
                             ],
                           ),
                         ),

@@ -8,6 +8,12 @@ class TrackModel extends Track {
     required String albumImage,
     required String audioUrl,
     required int duration,
+    String album = '',
+    String year = '',
+    String genre = '',
+    String releaseDate = '',
+    String popularity = '',
+    bool hasLyrics = false,
   }) : super(
           id: id,
           name: name,
@@ -15,6 +21,12 @@ class TrackModel extends Track {
           albumImage: albumImage,
           audioUrl: audioUrl,
           duration: duration,
+          album: album,
+          year: year,
+          genre: genre,
+          releaseDate: releaseDate,
+          popularity: popularity,
+          hasLyrics: hasLyrics,
         );
 
   factory TrackModel.fromJson(Map<String, dynamic> json) {
@@ -25,6 +37,12 @@ class TrackModel extends Track {
       albumImage: json['image'] ?? '',
       audioUrl: json['audio'] ?? '',
       duration: json['duration'] ?? 0,
+      album: json['album'] ?? '',
+      year: json['year'] ?? '',
+      genre: json['genre'] ?? '',
+      releaseDate: json['release_date'] ?? '',
+      popularity: json['popularity'] ?? '',
+      hasLyrics: json['has_lyrics'] == true || json['has_lyrics'] == 'true',
     );
   }
 
@@ -36,6 +54,12 @@ class TrackModel extends Track {
       'image': albumImage,
       'audio': audioUrl,
       'duration': duration,
+      'album': album,
+      'year': year,
+      'genre': genre,
+      'release_date': releaseDate,
+      'popularity': popularity,
+      'has_lyrics': hasLyrics,
     };
   }
 }
