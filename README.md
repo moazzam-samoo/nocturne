@@ -1,8 +1,8 @@
-# 🎵 SM Music
+# 🎵 Nocturne
 
 **A Premium Portfolio Music Discovery App built with Flutter.**
 
-SM Music (formerly JM Music) is a modern, feature-rich music streaming and download application designed to showcase advanced Flutter capabilities, Clean Architecture, and immersive UI/UX design.
+Nocturne (formerly SM Music) is a modern, feature-rich music streaming and download application designed to showcase advanced Flutter capabilities, Clean Architecture, and immersive UI/UX design.
 
 ---
 
