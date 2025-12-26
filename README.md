@@ -38,7 +38,7 @@ Nocturne (formerly SM Music) is a modern, feature-rich music streaming and downl
 
 | Home Screen | Now Playing | Search |
 |:---:|:---:|:---:|
-| *(Add Screenshot)* | *(Add Screenshot)* | *(Add Screenshot)* |
+| <img src="assets/screenshots/home_screen.png" width="300" /> | <img src="assets/screenshots/now_playing.png" width="300" /> | <img src="assets/screenshots/search_screen.png" width="300" /> |
 
 ---
 
