@@ -21,6 +21,22 @@ void main() {
              print('Image is List: ${first['image'] is List}');
              if (first['downloadUrl'] != null) {
                 print('DownloadUrl found');
+                String audioUrl = '';
+                if (first['downloadUrl'] is List) {
+                   final urls = first['downloadUrl'] as List;
+                   audioUrl = urls.last['link'] ?? urls.last['url'];
+                } else {
+                   audioUrl = first['downloadUrl'];
+                }
+                print('Testing Audio URL: $audioUrl');
+                if (audioUrl.isNotEmpty) {
+                  try {
+                    final audioResponse = await http.head(Uri.parse(audioUrl));
+                    print('Audio URL Status: ${audioResponse.statusCode}');
+                  } catch (e) {
+                    print('Audio URL Error: $e');
+                  }
+                }
              }
           }
        } else {

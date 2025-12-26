@@ -6,15 +6,11 @@ import 'app/presentation/screens/home_screen.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 
 Future<void> main() async {
-  try {
-    await JustAudioBackground.init(
-      androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
-      androidNotificationChannelName: 'Audio playback',
-      androidNotificationOngoing: true,
-    );
-  } catch (e) {
-    print('Error initializing JustAudioBackground: $e');
-  }
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
+    androidNotificationChannelName: 'Audio playback',
+    androidNotificationOngoing: true,
+  );
   runApp(const JMMusicApp());
 }
 
