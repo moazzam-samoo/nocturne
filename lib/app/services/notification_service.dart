@@ -14,16 +14,21 @@ class NotificationService {
 
     await _notificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: onNotificationResponse,
+      onDidReceiveNotificationResponse: (response) {
+        print('Notification Response Received: id=${response.id}, actionId=${response.actionId}, payload=${response.payload}');
+        onNotificationResponse(response);
+      },
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
     
     _createNotificationChannel();
   }
   
-  // Create a static method for background handling if needed, though simpler for now
+  // Create a static method for background handling
+  @pragma('vm:entry-point')
   static void notificationTapBackground(NotificationResponse notificationResponse) {
-    // Handle background interaction
+    print('Background Notification Response Received: id=${notificationResponse.id}, actionId=${notificationResponse.actionId}');
+    // We could use a stream or a method channel here if we needed to talk to the main isolate
   }
   
   Future<void> _createNotificationChannel() async {
@@ -57,8 +62,8 @@ class NotificationService {
               const AndroidNotificationAction(
                 'cancel_download', 
                 'Cancel',
-                showsUserInterface: false,
-                cancelNotification: true,
+                showsUserInterface: true,
+                cancelNotification: false, // Handle manually in controller to ensure logic runs
               ),
             ],
         );

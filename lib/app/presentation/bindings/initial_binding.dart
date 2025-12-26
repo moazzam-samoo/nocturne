@@ -16,7 +16,7 @@ class InitialBinding extends Bindings {
 
     // 3. Controllers
     Get.put<PlayerController>(PlayerController()); // Put permanent as Player is global
-    Get.lazyPut<MusicController>(
-        () => MusicController(repository: Get.find<MusicRepositoryImpl>()));
+    Get.put<MusicController>(
+        MusicController(repository: Get.find<MusicRepositoryImpl>()), permanent: true);
   }
 }
