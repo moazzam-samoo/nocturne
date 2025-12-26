@@ -4,7 +4,7 @@ import 'dart:convert';
 
 void main() {
   test('Saavn API Check', () async {
-    final url = Uri.parse('https://saavn.sumit.co/api/search/songs?query=Arijit+Singh&page=1&limit=5');
+    final url = Uri.parse('https://saavn.sumit.co/api/search/songs?query=English&page=1&limit=5');
     print('Fetching: $url');
     final response = await http.get(url);
     

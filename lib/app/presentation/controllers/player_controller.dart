@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import '../controllers/music_controller.dart';
 import '../../domain/entities/track.dart';
 
 class PlayerController extends GetxController {
@@ -24,8 +25,15 @@ class PlayerController extends GetxController {
     // Listen to player state
     _audioPlayer.playerStateStream.listen((playerState) {
       isPlaying.value = playerState.playing;
-      if (playerState.processingState == ProcessingState.completed) {
-        // Handle track completion logic implies auto-next or repeat
+    });
+
+    // Listen to current item index to update currentTrack
+    _audioPlayer.currentIndexStream.listen((index) {
+      if (index != null) {
+        final MusicController musicController = Get.find<MusicController>();
+        if (index < musicController.tracks.length) {
+          currentTrack.value = musicController.tracks[index];
+        }
       }
     });
 
@@ -47,6 +55,13 @@ class PlayerController extends GetxController {
 
   Future<void> playTrack(Track track) async {
     try {
+      final MusicController musicController = Get.find<MusicController>();
+      final allTracks = musicController.tracks;
+      final index = allTracks.indexWhere((t) => t.id == track.id);
+      
+      if (index == -1) return; // Should not happen
+
+      // If playing the same track, just toggle play/pause
       if (currentTrack.value?.id == track.id) {
          if (isPlaying.value) {
            pause();
@@ -56,21 +71,24 @@ class PlayerController extends GetxController {
          return;
       }
       
-      currentTrack.value = track;
-      
-      // Setup AudioSource with Metadata for Notification
-      final audioSource = AudioSource.uri(
-        Uri.parse(track.audioUrl),
-        tag: MediaItem(
-          id: track.id,
-          album: "JM Music",
-          title: track.name,
-          artist: track.artistName,
-          artUri: Uri.parse(track.albumImage),
-        ),
+      // Create a playlist from all tracks
+      final playlist = ConcatenatingAudioSource(
+        useLazyPreparation: true,
+        children: allTracks.map((t) {
+          return AudioSource.uri(
+            Uri.parse(t.audioUrl),
+            tag: MediaItem(
+              id: t.id,
+              album: "JM Music",
+              title: t.name,
+              artist: t.artistName,
+              artUri: Uri.parse(t.albumImage),
+            ),
+          );
+        }).toList(),
       );
 
-      await _audioPlayer.setAudioSource(audioSource);
+      await _audioPlayer.setAudioSource(playlist, initialIndex: index);
       _audioPlayer.play();
     } catch (e) {
       Get.snackbar("Error", "Could not play track: $e");
@@ -103,6 +121,14 @@ class PlayerController extends GetxController {
       loopMode.value = LoopMode.off;
     }
     _audioPlayer.setLoopMode(loopMode.value);
+  }
+
+  Future<void> skipToNext() async {
+    await _audioPlayer.seekToNext();
+  }
+
+  Future<void> skipToPrevious() async {
+    await _audioPlayer.seekToPrevious();
   }
 
   @override

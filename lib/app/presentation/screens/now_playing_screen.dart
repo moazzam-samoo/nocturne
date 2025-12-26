@@ -3,6 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:just_audio/just_audio.dart'; // LoopMode
+import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 import '../widgets/glass_container.dart';
 import 'lyrics_screen.dart'; // Will create next
@@ -17,6 +20,7 @@ class NowPlayingScreen extends StatefulWidget {
 class _NowPlayingScreenState extends State<NowPlayingScreen>
     with SingleTickerProviderStateMixin {
   final PlayerController playerController = Get.find();
+  final MusicController musicController = Get.find();
   late AnimationController _animationController;
 
   @override
@@ -47,6 +51,8 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     super.dispose();
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -55,10 +61,10 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF2E0249), // Deep Purple
-            Color(0xFFA91079), // Pinkish Purple
-            Color(0xFF570A57), // Dark Violet
-            Color(0xFF000000), // Black
+            Color(0xFF2E0249), 
+            Color(0xFFA91079), 
+            Color(0xFF570A57), 
+            Color(0xFF000000), 
           ],
         ),
       ),
@@ -73,11 +79,16 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           ),
           title: const Text('Now Playing', style: TextStyle(color: Colors.white)),
           centerTitle: true,
+          // Removed top right menu as requested
           actions: [
-            IconButton(
-              icon: const Icon(Icons.more_horiz, color: Colors.white),
-              onPressed: () {},
-            ),
+             IconButton(
+               icon: const Icon(Icons.download_rounded, color: Colors.white),
+               onPressed: () {
+                 if (playerController.currentTrack.value != null) {
+                    musicController.downloadTrack(playerController.currentTrack.value!);
+                 }
+               },
+             ),
           ],
         ),
         body: SafeArea(
@@ -86,15 +97,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                _buildRotatingArtwork(),
+                _buildRotatingArtwork().animate().fade(duration: 600.ms).scale(curve: Curves.easeOutBack),
                 const SizedBox(height: 50),
-                _buildTrackInfo(),
+                _buildTrackInfo().animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
                 const SizedBox(height: 30),
-                _buildProgressBar(),
+                _buildProgressBar().animate().fadeIn(delay: 400.ms),
                  const SizedBox(height: 20),
-                _buildControls(),
+                _buildControls().animate().fadeIn(delay: 500.ms).moveY(begin: 20, end: 0),
                  const Spacer(),
-                 _buildLyricsButton(),
+                 _buildLyricsButton().animate().fadeIn(delay: 600.ms),
               ],
             ),
           ),
@@ -103,6 +114,75 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
     );
   }
 
+  // ... _buildRotatingArtwork and _buildTrackInfo kept same ...
+
+  Widget _buildControls() {
+    return Obx(() {
+       return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: Icon(Icons.shuffle, 
+              color: playerController.isShuffleModeEnabled.value ? const Color(0xFFA91079) : Colors.white70,
+            ),
+            onPressed: playerController.toggleShuffle,
+          ),
+          IconButton(
+            icon: const Icon(Icons.skip_previous, color: Colors.white, size: 36),
+            onPressed: () => playerController.skipToPrevious(), 
+          ),
+          
+          // Play/Pause Button - IMPROVED VISIBILITY
+          GlassContainer(
+            width: 75,
+            height: 75,
+            borderRadius: BorderRadius.circular(40),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFA91079).withOpacity(0.8), // Solid Pink/Purple
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFA91079).withOpacity(0.5),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  )
+                ]
+              ),
+              child: IconButton(
+                icon: Icon(
+                  playerController.isPlaying.value ? Icons.pause : Icons.play_arrow,
+                  color: Colors.white,
+                  size: 36,
+                ),
+                onPressed: () {
+                   if (playerController.isPlaying.value) {
+                                        playerController.pause();
+                      } else {
+                        playerController.resume();
+                      }
+                },
+              ),
+            ),
+          ),
+          
+          IconButton(
+            icon: const Icon(Icons.skip_next, color: Colors.white, size: 36),
+             onPressed: () => playerController.skipToNext(), 
+          ),
+           IconButton(
+            icon: Icon(
+              playerController.loopMode.value == LoopMode.one ? Icons.repeat_one : Icons.repeat,
+              color: playerController.loopMode.value != LoopMode.off ? const Color(0xFFA91079) : Colors.white70
+            ),
+            onPressed: playerController.cycleLoopMode,
+          ),
+        ],
+      );
+    });
+  }
+
+  // ... _buildLyricsButton kept same ...
   Widget _buildRotatingArtwork() {
     return Obx(() {
         final track = playerController.currentTrack.value;
@@ -225,7 +305,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           ),
           IconButton(
             icon: const Icon(Icons.skip_previous, color: Colors.white, size: 36),
-            onPressed: () {}, // Implement previous logic if list available
+            onPressed: () => playerController.skipToPrevious(), 
           ),
           
           // Play/Pause Button
@@ -251,7 +331,7 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
           
           IconButton(
             icon: const Icon(Icons.skip_next, color: Colors.white, size: 36),
-             onPressed: () {}, // Implement next logic
+             onPressed: () => playerController.skipToNext(), 
           ),
            IconButton(
             icon: const Icon(Icons.repeat, color: Colors.white70),
