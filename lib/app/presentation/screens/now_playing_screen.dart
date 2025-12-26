@@ -18,37 +18,16 @@ class NowPlayingScreen extends StatefulWidget {
   State<NowPlayingScreen> createState() => _NowPlayingScreenState();
 }
 
-class _NowPlayingScreenState extends State<NowPlayingScreen>
-    with SingleTickerProviderStateMixin {
+class _NowPlayingScreenState extends State<NowPlayingScreen> {
   final PlayerController playerController = Get.find();
   final MusicController musicController = Get.find();
-  late AnimationController _animationController;
-
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    );
-
-    // Sync rotation with playback status
-    ever(playerController.isPlaying, (playing) {
-      if (playing) {
-        _animationController.repeat();
-      } else {
-        _animationController.stop();
-      }
-    });
-
-    if (playerController.isPlaying.value) {
-      _animationController.repeat();
-    }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
     super.dispose();
   }
 
@@ -120,15 +99,15 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       const SizedBox(height: 20),
-                      _buildRotatingArtwork().animate().fade(duration: 600.ms).scale(curve: Curves.easeOutBack),
+                      _buildRotatingArtwork(),
                       const SizedBox(height: 30),
-                      _buildTrackInfo().animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
+                      _buildTrackInfo(),
                       const SizedBox(height: 20),
-                      _buildProgressBar().animate().fadeIn(delay: 400.ms),
+                      _buildProgressBar(),
                        const SizedBox(height: 10),
-                      _buildControls().animate().fadeIn(delay: 500.ms).moveY(begin: 20, end: 0),
+                      _buildControls(),
                        const SizedBox(height: 20),
-                       _buildInfoPanel().animate().fadeIn(delay: 600.ms),
+                       _buildInfoPanel(),
                     ],
                   ),
                 ),
@@ -233,31 +212,24 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
                ),
              ),
              // Rotating Image
-             AnimatedBuilder(
-              animation: _animationController,
-              builder: (_, child) {
-                return Transform.rotate(
-                  angle: _animationController.value * 2 * math.pi,
-                  child: child,
-                );
-              },
-              child: Container(
-                 width: 250,
-                 height: 250,
-                 decoration: BoxDecoration(
-                   shape: BoxShape.circle,
-                   border: Border.all(color: Colors.white.withOpacity(0.2), width: 8),
+             // Rotating Image
+             Container(
+               width: 280,
+               height: 280,
+               decoration: const BoxDecoration(
+                 shape: BoxShape.circle,
+               ),
+               child: ClipOval(
+                 child: Image.network(
+                   track.albumImage, 
+                   fit: BoxFit.cover,
+                   errorBuilder: (context, error, stackTrace) => Image.asset(
+                     'assets/images/music_placeholder.png', 
+                     fit: BoxFit.cover,
+                   ),
                  ),
-                 child: ClipOval(
-                   child: CachedNetworkImage(
-                      imageUrl: track.albumImage,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(color: Colors.grey[900]),
-                      errorWidget: (context, url, error) => const Icon(Icons.error),
-                    ),
-                 ),
-              ),
-            ),
+               ),
+             ),
           ],
         );
     });

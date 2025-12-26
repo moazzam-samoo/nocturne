@@ -121,13 +121,22 @@ class MusicController extends GetxController {
     final savePath = '${dir.path}/$sanitizedFileName.mp3';
     
     try {
-      // Request permissions (Storage for <13, Audio for 13+)
+      // Request permissions based on Android version
       if (Platform.isAndroid) {
-        await [
-          Permission.storage,
-          Permission.audio,
+         Map<Permission, PermissionStatus> statuses = await [
+          Permission.storage,  // < 13
+          Permission.audio,    // >= 13
           Permission.notification,
         ].request();
+        
+        bool storageGranted = statuses[Permission.storage]?.isGranted ?? false;
+        bool audioGranted = statuses[Permission.audio]?.isGranted ?? false;
+        
+        if (!storageGranted && !audioGranted) {
+           if (await Permission.manageExternalStorage.status.isDenied) {
+              await Permission.manageExternalStorage.request();
+           }
+        }
       }
 
       if (!await dir.exists()) {

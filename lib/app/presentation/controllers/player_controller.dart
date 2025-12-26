@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'dart:io';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:audio_session/audio_session.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/trending_controller.dart'; // Added missing import
 import '../../domain/entities/track.dart';
@@ -23,7 +24,15 @@ class PlayerController extends GetxController {
 
   @override
   void onInit() {
+    print('PlayerController: onInit called');
     super.onInit();
+    // Configure audio session
+    try {
+       final session = AudioSession.instance;
+       session.then((s) => s.configure(const AudioSessionConfiguration.music()));
+    } catch(e) {
+       print('PlayerController: AudioSession error: $e');
+    }
     
     // Listen to player state
     _audioPlayer.playerStateStream.listen((playerState) {
@@ -51,9 +60,17 @@ class PlayerController extends GetxController {
     _audioPlayer.bufferedPositionStream.listen((b) {
       bufferedPosition.value = b;
     });
+
+    // Listen for player errors
+    _audioPlayer.playbackEventStream.listen((event) {},
+        onError: (Object e, StackTrace stackTrace) {
+      print('A stream error occurred: $e');
+      Get.snackbar('Playback Error', '$e');
+    });
   }
 
   Future<void> playTrack(Track track) async {
+    print("PlayerController: playTrack called for ${track.name}");
     try {
       final MusicController musicController = Get.find<MusicController>();
       List<Track> sourceList = [];
@@ -83,13 +100,16 @@ class PlayerController extends GetxController {
       final index = sourceList.indexWhere((t) => t.id == track.id);
       
       if (index == -1) return; 
+
+      // Capture the currently playing ID BEFORE updating it
+      final previousTrackId = currentTrack.value?.id;
       
-      // IMMEDIATELY update current track to ensure UI reflects the new song 
-      // even if the playlist index happens to be the same (e.g. 0 -> 0).
+      // Update current track so UI shows the new song
       currentTrack.value = track;
 
       // If playing the same track, just toggle play/pause
-      if (currentTrack.value?.id == track.id) {
+      // BUT only if we actually have an active player session
+      if (previousTrackId == track.id && _audioPlayer.processingState != ProcessingState.idle) {
          if (isPlaying.value) {
            pause();
          } else {
@@ -99,9 +119,7 @@ class PlayerController extends GetxController {
       }
       
       // Create a playlist from sourceList
-      final playlist = ConcatenatingAudioSource(
-        useLazyPreparation: true,
-        children: sourceList.map((t) {
+      final audioSources = await Future.wait(sourceList.map((t) async {
           // Check for local file first
           final sanitizedName = t.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
           // Check new Nocturne path
@@ -109,8 +127,17 @@ class PlayerController extends GetxController {
           
           Uri audioUri;
           if (localFile.existsSync()) {
-            audioUri = Uri.file(localFile.path);
-            print('PlayerController: Playing from LOCAL file: ${localFile.path}');
+            int length = 0;
+            try { length = await localFile.length(); } catch(_){}
+            print('PlayerController: Found LOCAL file: ${localFile.path}, Size: $length bytes');
+            
+            if (length < 1024) { // Less than 1KB (likely failed download)
+               print('PlayerController: File too small, deleting and using REMOTE.');
+               try { await localFile.delete(); } catch (_) {}
+               audioUri = Uri.parse(t.audioUrl);
+            } else {
+               audioUri = Uri.file(localFile.path);
+            }
           } else {
              // Fallback to old SM Music path for legacy downloads
              final File legacyFile = File('/storage/emulated/0/Music/SM Music/$sanitizedName.mp3');
@@ -125,6 +152,7 @@ class PlayerController extends GetxController {
 
           return AudioSource.uri(
             audioUri,
+            headers: {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'},
             tag: MediaItem(
               id: t.id,
               album: "Nocturne",
@@ -133,12 +161,21 @@ class PlayerController extends GetxController {
               artUri: Uri.parse(t.albumImage),
             ),
           );
-        }).toList(),
+      }));
+
+      final playlist = ConcatenatingAudioSource(
+        useLazyPreparation: true,
+        children: audioSources,
       );
+
+      _audioPlayer.playerStateStream.listen((state) {
+         print('PlayerController: State Changed: ${state.processingState}, Playing: ${state.playing}');
+      });
 
       await _audioPlayer.setAudioSource(playlist, initialIndex: index);
       _audioPlayer.play();
     } catch (e) {
+      print("PlayerController: CRITICAL ERROR in playTrack: $e");
       Get.snackbar("Error", "Could not play track: $e");
     }
   }
