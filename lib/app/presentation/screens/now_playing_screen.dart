@@ -291,56 +291,6 @@ class _NowPlayingScreenState extends State<NowPlayingScreen>
       );
     });
   }
-
-  Widget _buildControls() {
-    return Obx(() {
-       return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: Icon(Icons.shuffle, 
-              color: playerController.isShuffleModeEnabled.value ? const Color(0xFFA91079) : Colors.white70,
-            ),
-            onPressed: playerController.toggleShuffle,
-          ),
-          IconButton(
-            icon: const Icon(Icons.skip_previous, color: Colors.white, size: 36),
-            onPressed: () => playerController.skipToPrevious(), 
-          ),
-          
-          // Play/Pause Button
-          GlassContainer(
-            width: 70,
-            height: 70,
-            borderRadius: BorderRadius.circular(35),
-            child: IconButton(
-              icon: Icon(
-                playerController.isPlaying.value ? Icons.pause : Icons.play_arrow,
-                color: Colors.white,
-                size: 32,
-              ),
-              onPressed: () {
-                 if (playerController.isPlaying.value) {
-                      playerController.pause();
-                    } else {
-                      playerController.resume();
-                    }
-              },
-            ),
-          ),
-          
-          IconButton(
-            icon: const Icon(Icons.skip_next, color: Colors.white, size: 36),
-             onPressed: () => playerController.skipToNext(), 
-          ),
-           IconButton(
-            icon: const Icon(Icons.repeat, color: Colors.white70),
-            onPressed: playerController.cycleLoopMode,
-          ),
-        ],
-      );
-    });
-  }
   
   Widget _buildLyricsButton() {
      return GestureDetector(
