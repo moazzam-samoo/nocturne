@@ -60,7 +60,7 @@ class MainScreen extends StatelessWidget {
                     ),
                     onChanged: (val) => musicController.search(val),
                   )
-                : const Text('SM Music', key: ValueKey('appTitle'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                : const Text('Nocturne', key: ValueKey('appTitle'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
           )),
           centerTitle: false,
           actions: [
