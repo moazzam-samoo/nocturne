@@ -4,6 +4,7 @@ import '../controllers/favorites_controller.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 import '../controllers/main_controller.dart';
+import '../widgets/fancy_action_button.dart';
 
 class FavoritesScreen extends StatelessWidget {
   @override
@@ -53,8 +54,10 @@ class FavoritesScreen extends StatelessWidget {
                           trailing: Obx(() {
                         final isPlaying = Get.find<PlayerController>().currentTrack.value?.id == track.id &&
                             Get.find<PlayerController>().isPlaying.value;
-                        return IconButton(
-                          icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.pink),
+                        return FancyActionButton(
+                          icon: isPlaying ? Icons.pause : Icons.play_arrow,
+                          isPrimary: true,
+                          size: 20,
                           onPressed: () {
                              Get.find<PlayerController>().playTrack(track);
                              mainController.goToPlayer();

@@ -6,6 +6,7 @@ import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 import '../controllers/main_controller.dart';
 import '../widgets/glass_container.dart';
+import '../widgets/fancy_action_button.dart';
 import 'now_playing_screen.dart'; 
 // import 'search_screen.dart'; // Removed as Search is now in Main App Bar
 
@@ -206,20 +207,14 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                       // Keep the play button visual for affordance, but row is actionable
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFA91079), // Accent color
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                             BoxShadow(
-                               color: Color(0xFFA91079),
-                               blurRadius: 10,
-                               spreadRadius: 2,
-                             )
-                          ]
-                        ),
-                        child: const Icon(Icons.play_arrow, color: Colors.white, size: 20),
+                      FancyActionButton(
+                        icon: Icons.play_arrow,
+                        isPrimary: true,
+                        size: 20,
+                        onPressed: () {
+                           player.playTrack(track);
+                           Get.find<MainController>().goToPlayer();
+                        },
                       ),
                     ],
                   ),

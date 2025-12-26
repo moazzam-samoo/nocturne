@@ -4,6 +4,7 @@ import '../controllers/trending_controller.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 import '../controllers/main_controller.dart';
+import '../widgets/fancy_action_button.dart';
 
 class TrendingScreen extends StatelessWidget {
   @override
@@ -62,20 +63,20 @@ class TrendingScreen extends StatelessWidget {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.download,
-                                  color: Colors.white),
-                              onPressed: () =>
-                                  musicController.downloadTrack(track),
+                            FancyActionButton(
+                              icon: Icons.download,
+                              isPrimary: false,
+                              size: 20,
+                              onPressed: () => musicController.downloadTrack(track),
                             ),
-                              Obx(() {
+                            const SizedBox(width: 10),
+                            Obx(() {
                               final isPlaying = Get.find<PlayerController>().currentTrack.value?.id == track.id &&
                                   Get.find<PlayerController>().isPlaying.value;
-                              return IconButton(
-                                icon: Icon(
-                                  isPlaying ? Icons.pause : Icons.play_arrow,
-                                  color: Colors.pink,
-                                ),
+                              return FancyActionButton(
+                                icon: isPlaying ? Icons.pause : Icons.play_arrow,
+                                isPrimary: true,
+                                size: 20,
                                 onPressed: () {
                                   Get.find<PlayerController>().playTrack(track);
                                   mainController.goToPlayer();
