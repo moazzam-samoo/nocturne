@@ -83,14 +83,15 @@ class MainScreen extends StatelessWidget {
             preferredSize: const Size.fromHeight(kTextTabBarHeight),
             child: Obx(() => mainController.isSearchExpanded.value 
               ? const SizedBox.shrink()
-              : const TabBar(
+              : TabBar(
+                  controller: mainController.tabController,
                   isScrollable: true,
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.grey,
                   indicatorColor: Colors.pinkAccent,
                   indicatorWeight: 3,
-                  labelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  tabs: [
+                  labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  tabs: const [
                     Tab(text: 'Home'),
                     Tab(text: 'Trending'),
                     Tab(text: 'Favorites'),
@@ -102,7 +103,10 @@ class MainScreen extends StatelessWidget {
         ),
         body: Stack(
           children: [
-            TabBarView(children: screens),
+            TabBarView(
+              controller: mainController.tabController,
+              children: screens
+            ),
             
             // Search Results Overlay
             Obx(() => mainController.isSearchExpanded.value
