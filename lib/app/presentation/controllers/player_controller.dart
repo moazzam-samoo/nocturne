@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import '../controllers/music_controller.dart';
+import '../controllers/trending_controller.dart'; // Added missing import
 import '../../domain/entities/track.dart';
 
 class PlayerController extends GetxController {
@@ -66,6 +67,11 @@ class PlayerController extends GetxController {
       else if (musicController.searchResults.any((t) => t.id == track.id)) {
         sourceList = musicController.searchResults;
       } 
+      // Check if it exists in All Songs (Trending)
+      else if (Get.isRegistered<TrendingController>() && 
+               Get.find<TrendingController>().displayedTracks.any((t) => t.id == track.id)) {
+        sourceList = Get.find<TrendingController>().displayedTracks;
+      }
       // Fallback: Just play this single track
       else {
         sourceList = [track];
@@ -77,6 +83,10 @@ class PlayerController extends GetxController {
       final index = sourceList.indexWhere((t) => t.id == track.id);
       
       if (index == -1) return; 
+      
+      // IMMEDIATELY update current track to ensure UI reflects the new song 
+      // even if the playlist index happens to be the same (e.g. 0 -> 0).
+      currentTrack.value = track;
 
       // If playing the same track, just toggle play/pause
       if (currentTrack.value?.id == track.id) {
