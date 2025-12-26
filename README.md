@@ -2,7 +2,7 @@
 
 **A Premium Portfolio Music Discovery App built with Flutter.**
 
-Nocturne (formerly SM Music) is a modern, feature-rich music streaming and download application designed to showcase advanced Flutter capabilities, Clean Architecture, and immersive UI/UX design.
+Nocturne (formerly SM Music) is a premium music discovery app built with **Flutter**. Powered by the **Saavn API**, it offers **unlimited free music downloads** and high-fidelity streaming. Experience a vast library of Bollywood and International hits with offline support, robust background playback, and a stunning neon glassmorphism UI.
 
 ---
 
@@ -55,7 +55,7 @@ Nocturne (formerly SM Music) is a modern, feature-rich music streaming and downl
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/yourusername/sm-music.git
+    git clone https://github.com/yourusername/nocturne.git
     ```
 
 2. **Install dependencies:**
