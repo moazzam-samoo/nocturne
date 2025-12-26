@@ -9,46 +9,65 @@ class DownloadsScreen extends StatelessWidget {
     final DownloadsController controller = Get.put(DownloadsController());
     final MainController mainController = Get.find<MainController>();
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('Downloads'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Obx(() {
-        if (controller.downloadedTracks.isEmpty) {
-           return const Center(child: Text('No downloads yet.', style: TextStyle(color: Colors.white)));
-        }
+    return CustomScrollView(
+        slivers: [
+          SliverOverlapInjector(
+            handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+          ),
+          
+          // Screen Title
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Text(
+                'Downloads',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Outfit',
+                ),
+              ),
+            ),
+          ),
 
-        return ListView.builder(
-          itemCount: controller.downloadedTracks.length,
-          itemBuilder: (context, index) {
-             final track = controller.downloadedTracks[index];
-             return ListTile(
-               leading: const Icon(Icons.music_note, color: Colors.white, size: 40), // Or generic image
-               title: Text(track.name, style: const TextStyle(color: Colors.white)),
-               subtitle: Text(track.artistName, style: const TextStyle(color: Colors.grey)),
-               trailing: Row(
-                 mainAxisSize: MainAxisSize.min,
-                 children: [
-                   IconButton(
-                     icon: const Icon(Icons.play_circle_fill, color: Colors.green),
-                     onPressed: () {
-                        controller.playDownloadedTrack(track);
-                        mainController.goToPlayer();
-                     },
-                   ),
-                   IconButton(
-                     icon: const Icon(Icons.delete, color: Colors.red),
-                     onPressed: () => controller.deleteDownload(track),
-                   ),
-                 ],
-               ),
-             );
-          },
-        );
-      }),
+          Obx(() {
+            if (controller.downloadedTracks.isEmpty) {
+               return const SliverFillRemaining(child: Center(child: Text('No downloads yet.', style: TextStyle(color: Colors.white))));
+            }
+    
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                   final track = controller.downloadedTracks[index];
+                   return ListTile(
+                     leading: const Icon(Icons.music_note, color: Colors.white, size: 40), // Or generic image
+                     title: Text(track.name, style: const TextStyle(color: Colors.white)),
+                     subtitle: Text(track.artistName, style: const TextStyle(color: Colors.grey)),
+                     trailing: Row(
+                       mainAxisSize: MainAxisSize.min,
+                       children: [
+                         IconButton(
+                           icon: const Icon(Icons.play_circle_fill, color: Colors.green),
+                           onPressed: () {
+                              controller.playDownloadedTrack(track);
+                              mainController.goToPlayer();
+                           },
+                         ),
+                         IconButton(
+                           icon: const Icon(Icons.delete, color: Colors.red),
+                           onPressed: () => controller.deleteDownload(track),
+                         ),
+                       ],
+                     ),
+                   );
+                },
+                childCount: controller.downloadedTracks.length,
+              ),
+            );
+          }),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+        ],
     );
   }
 }

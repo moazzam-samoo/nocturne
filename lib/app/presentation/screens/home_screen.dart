@@ -6,8 +6,8 @@ import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 import '../controllers/main_controller.dart';
 import '../widgets/glass_container.dart';
-import 'now_playing_screen.dart';
-import 'search_screen.dart';
+import 'now_playing_screen.dart'; 
+// import 'search_screen.dart'; // Removed as Search is now in Main App Bar
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -17,62 +17,43 @@ class HomeScreen extends StatelessWidget {
     final MusicController musicController = Get.find();
     final PlayerController playerController = Get.find();
 
-    return Scaffold(
-      backgroundColor: Colors.transparent, 
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 20),
-            _buildSectionTitle('Recently Played'),
-            const SizedBox(height: 10),
-            _buildRecentlyPlayedList(musicController, playerController),
-            const SizedBox(height: 20),
-            _buildCategoryTabs(musicController),
-            const SizedBox(height: 10),
-            Expanded(
-              child: _buildYouMightLikeList(musicController, playerController),
+    return Builder(
+      builder: (context) {
+        return CustomScrollView(
+          slivers: [
+            SliverOverlapInjector(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
             ),
-             // Miniplayer removed as we have a dedicated Player Tab, but could be added back globally if needed.
-             // For now, let's keep the screen clean.
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle('Recently Played'),
+                    const SizedBox(height: 10),
+                    _buildRecentlyPlayedList(musicController, playerController),
+                    const SizedBox(height: 20),
+                    _buildCategoryTabs(musicController),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            ),
+            // Use SliverFillRemaining or just another Adapter for the rest
+             SliverToBoxAdapter(
+               child: SizedBox(
+                height: 400, // Fixed height or use SliverList if dynamic
+                child: _buildYouMightLikeList(musicController, playerController)
+               ),
+             ),
+             const SliverPadding(padding: EdgeInsets.only(bottom: 100)), // Space for MiniPlayer
           ],
-        ),
-      ),
+        );
+      }
     );
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GlassContainer(
-            width: 50,
-            height: 50,
-            padding: const EdgeInsets.all(12),
-            borderRadius: BorderRadius.circular(15),
-            child: Image.asset(
-              'assets/icons/app_logo.png',
-              width: 30,
-              height: 30,
-            ),
-          ),
-          GestureDetector(
-            onTap: () => Get.to(() => const SearchScreen()),
-            child: GlassContainer(
-              width: 50,
-              height: 50,
-              padding: const EdgeInsets.all(12),
-              borderRadius: BorderRadius.circular(15),
-              child: const Icon(Icons.search, color: Colors.white, size: 24),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
