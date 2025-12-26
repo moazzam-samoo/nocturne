@@ -93,7 +93,7 @@ class MainScreen extends StatelessWidget {
                   labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   tabs: const [
                     Tab(text: 'Home'),
-                    Tab(text: 'Trending'),
+                    Tab(text: 'All Songs'),
                     Tab(text: 'Favorites'),
                     Tab(text: 'Downloads'),
                   ],
