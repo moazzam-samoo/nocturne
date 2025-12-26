@@ -16,8 +16,11 @@ class MusicController extends GetxController {
   
   // Observables
   var tracks = <Track>[].obs;
+  var searchResults = <Track>[].obs; // Separate list for search results
   var isLoading = true.obs;
+  var isSearching = false.obs; // Loading state for search
   var errorMessage = ''.obs;
+  var searchErrorMessage = ''.obs; // Error message for search
   var selectedCategoryIndex = 0.obs; // 0: Indian, 1: Hollywood (International)
 
   @override
@@ -83,24 +86,24 @@ class MusicController extends GetxController {
 
   void search(String query) async {
     if (query.isEmpty) {
-      fetchTracksByCategory();
+      searchResults.clear();
       return;
     }
     
     try {
-      isLoading(true);
-      errorMessage('');
+      isSearching(true);
+      searchErrorMessage('');
       var result = await repository.searchTracks(query);
       if (result.isNotEmpty) {
-        tracks.assignAll(result);
+        searchResults.assignAll(result);
       } else {
-        errorMessage('No tracks found for "$query"');
-        tracks.clear();
+        searchErrorMessage('No tracks found for "$query"');
+        searchResults.clear();
       }
     } catch (e) {
-      errorMessage(e.toString());
+      searchErrorMessage(e.toString());
     } finally {
-      isLoading(false);
+      isSearching(false);
     }
   }
 
