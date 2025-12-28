@@ -4,7 +4,7 @@ import '../models/track_model.dart';
 
 class JamendoProvider {
   static const String _baseUrl = 'https://api.jamendo.com/v3.0';
-  static const String _clientId = '7ce36c3b'; // User provided Live ID
+  static const String _clientId = '7ce36c3b'; 
 
   Future<List<TrackModel>> fetchTracks({int limit = 20, String tags = 'Indian+Hindi'}) async {
     final url = Uri.parse('$_baseUrl/tracks/?client_id=$_clientId&format=json&limit=$limit&tags=$tags&include=musicinfo&imagesize=500');

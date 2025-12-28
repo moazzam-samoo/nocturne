@@ -42,12 +42,12 @@ class HomePage extends StatelessWidget {
 
               Expanded(
                 child: Obx(() {
-                  if (controller.isTrendingLoading.value && controller.trendingTracks.isEmpty) {
+                  if (controller.isLoading.value && controller.tracks.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
                   }
                   
-                   if (controller.trendingError.value.isNotEmpty && controller.trendingTracks.isEmpty) {
-                    return Center(child: Text(controller.trendingError.value));
+                   if (controller.errorMessage.value.isNotEmpty && controller.tracks.isEmpty) {
+                    return Center(child: Text(controller.errorMessage.value));
                   }
 
                   return ListView(
@@ -63,9 +63,9 @@ class HomePage extends StatelessWidget {
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: controller.trendingTracks.length,
+                          itemCount: controller.tracks.length,
                           itemBuilder: (context, index) {
-                            final track = controller.trendingTracks[index];
+                            final track = controller.tracks[index];
                             return AnimatedListItem(
                               index: index,
                               child: GestureDetector(
@@ -91,7 +91,7 @@ class HomePage extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        track.title, 
+                                        track.name, 
                                         maxLines: 1, 
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
@@ -110,7 +110,7 @@ class HomePage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         child: const Text('You Might Like', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
                       ),
-                      ...controller.regionalTracks.asMap().entries.map((entry) {
+                      ...controller.tracks.take(10).toList().asMap().entries.map((entry) {
                          final index = entry.key;
                          final track = entry.value;
                          return AnimatedListItem(
@@ -120,6 +120,7 @@ class HomePage extends StatelessWidget {
                              child: Container(
                                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                                child: GlassContainer(
+                                 width: double.infinity,
                                  height: 80,
                                  child: Row(
                                    children: [
@@ -134,7 +135,7 @@ class HomePage extends StatelessWidget {
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             Text(
-                                              track.title, 
+                                              track.name, 
                                               maxLines: 1, 
                                               overflow: TextOverflow.ellipsis,
                                               style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)

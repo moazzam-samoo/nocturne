@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:get/get.dart';
-import '../../domain/entities/track.dart';
-import '../../services/storage_service.dart';
+import '../../../backend/domain/entities/track.dart';
+import '../../../backend/services/storage_service.dart';
 import 'player_controller.dart';
 import 'music_controller.dart'; 
 

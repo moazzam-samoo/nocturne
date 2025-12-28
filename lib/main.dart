@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'app/presentation/bindings/initial_binding.dart';
-import 'app/presentation/screens/main_screen.dart';
+import 'frontend/presentation/bindings/initial_binding.dart';
+import 'frontend/presentation/screens/main_screen.dart';
 
 import 'package:just_audio_background/just_audio_background.dart';
 

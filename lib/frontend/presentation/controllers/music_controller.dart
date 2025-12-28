@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../../domain/entities/track.dart';
-import '../../domain/repositories/music_repository.dart';
-import '../../services/notification_service.dart';
-import '../../services/storage_service.dart';
+import '../../../backend/domain/entities/track.dart';
+import '../../../backend/domain/repositories/music_repository.dart';
+import '../../../backend/services/notification_service.dart';
+import '../../../backend/services/storage_service.dart';
 
 class MusicController extends GetxController {
   final MusicRepository repository;

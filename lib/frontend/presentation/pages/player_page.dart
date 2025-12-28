@@ -70,7 +70,7 @@ class PlayerPage extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      track.title,
+                      track.name,
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
@@ -89,7 +89,7 @@ class PlayerPage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: ProgressBar(
                   progress: controller.progress.value,
-                  buffered: controller.buffered.value,
+                  buffered: controller.bufferedPosition.value,
                   total: controller.totalDuration.value,
                   onSeek: controller.seek,
                   baseBarColor: Colors.white.withOpacity(0.3),
@@ -145,7 +145,7 @@ class PlayerPage extends StatelessWidget {
                 child: GlassContainer(
                   width: 200,
                   height: 50,
-                  borderRadius: 30,
+                  borderRadius: BorderRadius.circular(30),
                   child: const Center(child: Text("Lyrics", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
                 ),
               ),

@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
-import '../../domain/entities/track.dart';
-import '../../data/providers/saavn_provider.dart';
+import '../../../backend/domain/entities/track.dart';
+import '../../../backend/data/providers/saavn_provider.dart';
 
 class TrendingController extends GetxController {
   final SaavnProvider _provider = SaavnProvider();

@@ -5,7 +5,7 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:audio_session/audio_session.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/trending_controller.dart'; // Added missing import
-import '../../domain/entities/track.dart';
+import '../../../backend/domain/entities/track.dart';
 
 class PlayerController extends GetxController {
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -213,6 +213,14 @@ class PlayerController extends GetxController {
 
   Future<void> skipToPrevious() async {
     await _audioPlayer.seekToPrevious();
+  }
+  
+  void togglePlayPause() {
+    if (isPlaying.value) {
+      pause();
+    } else {
+      resume();
+    }
   }
 
   @override

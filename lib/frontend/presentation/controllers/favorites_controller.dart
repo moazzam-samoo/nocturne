@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
-import '../../domain/entities/track.dart';
-import '../../services/storage_service.dart';
+import '../../../backend/domain/entities/track.dart';
+import '../../../backend/services/storage_service.dart';
 
 class FavoritesController extends GetxController {
   StorageService get _storage => Get.find<StorageService>();

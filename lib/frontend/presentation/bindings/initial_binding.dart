@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
-import '../../data/providers/saavn_provider.dart';
-import '../../services/storage_service.dart';
-import '../../data/repositories/music_repository_impl.dart';
-import '../../domain/repositories/music_repository.dart';
+import '../../../backend/data/providers/saavn_provider.dart';
+import '../../../backend/services/storage_service.dart';
+import '../../../backend/data/repositories/music_repository_impl.dart';
+import '../../../backend/domain/repositories/music_repository.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 

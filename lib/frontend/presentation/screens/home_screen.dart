@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../domain/entities/track.dart';
+import '../../../backend/domain/entities/track.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 import '../controllers/main_controller.dart';

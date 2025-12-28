@@ -34,6 +34,7 @@ class SearchPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: GlassContainer(
+                  width: double.infinity,
                   height: 60,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Center(
@@ -55,12 +56,12 @@ class SearchPage extends StatelessWidget {
               // Results
               Expanded(
                 child: Obx(() {
-                  if (controller.isSearchLoading.value) {
+                  if (controller.isSearching.value) {
                     return const Center(child: CircularProgressIndicator());
                   }
                   
-                  if (controller.searchError.value.isNotEmpty) {
-                     return Center(child: Text('Error: ${controller.searchError.value}'));
+                  if (controller.searchErrorMessage.value.isNotEmpty) {
+                     return Center(child: Text('Error: ${controller.searchErrorMessage.value}'));
                   }
 
                   if (controller.searchResults.isEmpty) {
@@ -81,7 +82,7 @@ class SearchPage extends StatelessWidget {
                               errorBuilder: (_,__,___) => Container(color: Colors.grey, width: 50, height: 50),
                             ),
                           ),
-                          title: Text(track.title, style: const TextStyle(color: Colors.white)),
+                          title: Text(track.name, style: const TextStyle(color: Colors.white)),
                           subtitle: Text(track.artistName, style: const TextStyle(color: Colors.white70)),
                           trailing: IconButton(
                             icon: const Icon(Icons.play_arrow, color: Colors.white),

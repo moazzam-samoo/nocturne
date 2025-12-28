@@ -33,7 +33,7 @@ class LyricsPage extends StatelessWidget {
               Opacity(
                 opacity: 0.2,
                 child: Image.network(
-                  track.artistImage.isNotEmpty ? track.artistImage : track.albumImage,
+                  track.albumImage,
                   fit: BoxFit.cover,
                   errorBuilder: (_,__,___) => const SizedBox(),
                 ),
@@ -45,10 +45,16 @@ class LyricsPage extends StatelessWidget {
                   padding: const EdgeInsets.all(24.0),
                   child: SingleChildScrollView(
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                         Text(
-                          "Lyrics for ${track.title}", 
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundImage: NetworkImage(track.albumImage),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          track.name,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         const SizedBox(height: 20),
                         const Text(
