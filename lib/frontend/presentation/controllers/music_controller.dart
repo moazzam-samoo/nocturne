@@ -170,6 +170,7 @@ class MusicController extends GetxController {
           savePath,
           cancelToken: cancelToken,
           onReceiveProgress: (received, total) {
+             if (cancelToken.isCancelled) return; 
              if (total != -1) {
                int progress = ((received / total) * 100).toInt();
                _notificationService.showProgressNotification(
@@ -193,6 +194,7 @@ class MusicController extends GetxController {
           savePath,
           cancelToken: cancelToken,
           onReceiveProgress: (received, total) {
+             if (cancelToken.isCancelled) return; 
              if (total != -1) {
                int progress = ((received / total) * 100).toInt();
                _notificationService.showProgressNotification(
