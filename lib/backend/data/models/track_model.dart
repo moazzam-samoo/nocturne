@@ -14,6 +14,7 @@ class TrackModel extends Track {
     String releaseDate = '',
     String popularity = '',
     bool hasLyrics = false,
+    String? localPath,
   }) : super(
           id: id,
           name: name,
@@ -27,6 +28,7 @@ class TrackModel extends Track {
           releaseDate: releaseDate,
           popularity: popularity,
           hasLyrics: hasLyrics,
+          localPath: localPath,
         );
 
   factory TrackModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +45,7 @@ class TrackModel extends Track {
       releaseDate: json['release_date'] ?? '',
       popularity: json['popularity'] ?? '',
       hasLyrics: json['has_lyrics'] == true || json['has_lyrics'] == 'true',
+      localPath: json['local_path'],
     );
   }
 
@@ -60,6 +63,7 @@ class TrackModel extends Track {
       'release_date': releaseDate,
       'popularity': popularity,
       'has_lyrics': hasLyrics,
+      'local_path': localPath,
     };
   }
 }

@@ -27,5 +27,8 @@ class Track {
     this.releaseDate = '',
     this.popularity = '',
     this.hasLyrics = false,
+    this.localPath,
   });
+
+  final String? localPath;
 }

@@ -56,7 +56,8 @@ class StorageService extends GetxService {
         genre: t.genre,
         releaseDate: t.releaseDate,
         popularity: t.popularity,
-        hasLyrics: t.hasLyrics
+        hasLyrics: t.hasLyrics,
+        localPath: t.localPath,
       ).toJson();
     }).toList();
     _box.write('favorites', list);
@@ -99,7 +100,8 @@ class StorageService extends GetxService {
         genre: t.genre,
         releaseDate: t.releaseDate,
         popularity: t.popularity,
-        hasLyrics: t.hasLyrics
+        hasLyrics: t.hasLyrics,
+        localPath: t.localPath,
       ).toJson();
     }).toList();
     _box.write('downloads', list);

@@ -120,12 +120,23 @@ class PlayerController extends GetxController {
       // Create a playlist from sourceList
       final audioSources = await Future.wait(sourceList.map((t) async {
           // Check for local file first
-          final sanitizedName = t.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
-          // Check new Nocturne path
-          final File localFile = File('/storage/emulated/0/Music/Nocturne/$sanitizedName.mp3');
-          
           Uri audioUri;
-          if (localFile.existsSync()) {
+          File? localFile;
+          
+          if (t.localPath != null && t.localPath!.isNotEmpty) {
+             localFile = File(t.localPath!);
+          } else {
+             // Legacy fallback construction
+             final sanitizedName = t.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+             // Check new Nocturne path
+             localFile = File('/storage/emulated/0/Music/Nocturne/$sanitizedName.mp3');
+             if (!localFile.existsSync()) {
+                // Fallback to old SM Music path
+                localFile = File('/storage/emulated/0/Music/SM Music/$sanitizedName.mp3');
+             }
+          }
+
+          if (localFile != null && localFile.existsSync()) {
             int length = 0;
             try { length = await localFile.length(); } catch(_){}
             print('PlayerController: Found LOCAL file: ${localFile.path}, Size: $length bytes');
@@ -138,15 +149,8 @@ class PlayerController extends GetxController {
                audioUri = Uri.file(localFile.path);
             }
           } else {
-             // Fallback to old SM Music path for legacy downloads
-             final File legacyFile = File('/storage/emulated/0/Music/SM Music/$sanitizedName.mp3');
-             if (legacyFile.existsSync()) {
-                audioUri = Uri.file(legacyFile.path);
-                print('PlayerController: Playing from LEGACY file: ${legacyFile.path}');
-             } else {
-                audioUri = Uri.parse(t.audioUrl);
-                print('PlayerController: Playing from REMOTE url: ${t.audioUrl}');
-             }
+             audioUri = Uri.parse(t.audioUrl);
+             print('PlayerController: Playing from REMOTE url: ${t.audioUrl}');
           }
 
           return AudioSource.uri(

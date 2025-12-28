@@ -26,15 +26,21 @@ class DownloadsController extends GetxController {
   Future<void> deleteDownload(Track track) async {
     try {
       // 1. Resolve path logic (copied from MusicController for now, arguably should be in a shared helper)
-       String baseDir = '/storage/emulated/0/Music/Nocturne';
-       final sanitizedFileName = track.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
-       final path = '$baseDir/$sanitizedFileName.mp3';
-       
-       final file = File(path);
+       File? file;
+       if (track.localPath != null && track.localPath!.isNotEmpty) {
+          file = File(track.localPath!);
+       } else {
+          // Legacy fallback
+          String baseDir = '/storage/emulated/0/Music/Nocturne';
+          final sanitizedFileName = track.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+          file = File('$baseDir/$sanitizedFileName.mp3');
+       }
+
        if (await file.exists()) {
          await file.delete();
          Get.snackbar('Deleted', '${track.name} deleted from device');
        } else {
+         // Also try standard music dir if fallback failed? 
          Get.snackbar('Error', 'File not found on device');
        }
 

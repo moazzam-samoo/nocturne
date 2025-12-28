@@ -1,7 +1,10 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
+import '../../../backend/data/models/track_model.dart'; // Added missing import
 import '../../../backend/domain/entities/track.dart';
 import '../../../backend/domain/repositories/music_repository.dart';
 import '../../../backend/services/notification_service.dart';
@@ -11,6 +14,7 @@ class MusicController extends GetxController {
   final MusicRepository repository;
   final NotificationService _notificationService = NotificationService();
   final Map<int, CancelToken> _activeDownloads = {};
+  static const platform = MethodChannel('com.jm_music/media_scanner');
 
   MusicController({required this.repository});
   
@@ -107,19 +111,52 @@ class MusicController extends GetxController {
     }
   }
 
+  Future<Directory> _getDownloadDirectory() async {
+    Directory? dir;
+    
+    // 1. Try public Music folder (Android) if possible
+    if (Platform.isAndroid) {
+      try {
+        dir = Directory('/storage/emulated/0/Music/Nocturne');
+        if (!await dir.exists()) {
+           await dir.create(recursive: true);
+        }
+        print('MusicController: Using public Music directory: ${dir.path}');
+        return dir;
+      } catch (e) {
+        print('MusicController: Failed to access public Music directory: $e. Falling back to app storage.');
+      }
+    }
+
+    // 2. Fallback: Use path_provider
+    try {
+      if (Platform.isAndroid) {
+        dir = await getExternalStorageDirectory(); // App-specific external storage
+      } else {
+        dir = await getApplicationDocumentsDirectory(); // iOS/others
+      }
+      
+      if (dir != null) {
+         dir = Directory('${dir.path}/Nocturne'); // Subfolder
+         if (!await dir.exists()) {
+            await dir.create(recursive: true);
+         }
+         print('MusicController: Using fallback directory: ${dir.path}');
+         return dir;
+      }
+    } catch (e) {
+       print('MusicController: Path provider failed: $e');
+    }
+
+    throw Exception('Could not determine download directory');
+  }
+
   Future<void> downloadTrack(Track track) async {
     final notificationId = track.id.hashCode;
     final cancelToken = CancelToken();
     _activeDownloads[notificationId] = cancelToken;
     print('MusicController: Starting download for ${track.name}, notificationId: $notificationId');
 
-    // Use /storage/emulated/0/Music/SM Music as default
-    String baseDir = '/storage/emulated/0/Music/Nocturne';
-    final dir = Directory(baseDir);
-    // Sanitize filename to avoid filesystem issues
-    final sanitizedFileName = track.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
-    String savePath = '${dir.path}/$sanitizedFileName.mp3';
-    
     try {
       // Request permissions based on Android version
       if (Platform.isAndroid) {
@@ -129,85 +166,47 @@ class MusicController extends GetxController {
           Permission.notification,
         ].request();
         
+        // Check permissions (somewhat loose logic as we have fallbacks)
         bool storageGranted = statuses[Permission.storage]?.isGranted ?? false;
         bool audioGranted = statuses[Permission.audio]?.isGranted ?? false;
         
+        // Attempt manageExternalStorage if standard permissions fail and we might need it for public folder
         if (!storageGranted && !audioGranted) {
            if (await Permission.manageExternalStorage.status.isDenied) {
+              // Only request if really needed? Let's try to proceed, maybe app-specific storage works.
+              // But for public folder access on 11+, we might need it or media store.
+              // Let's request it to be safe for user expectations.
               await Permission.manageExternalStorage.request();
            }
         }
       }
 
-      if (!await dir.exists()) {
-        try {
-          await dir.create(recursive: true);
-        } catch (e) {
-          print('MusicController: Direct creation failed: $e. Falling back to public Music folder.');
-        }
-      }
-
-      // Check if file already exists and delete it to prevent PathExistsException
+      final dir = await _getDownloadDirectory();
+      
+      // Sanitize filename
+      final sanitizedFileName = track.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+      String savePath = '${dir.path}/$sanitizedFileName.mp3';
+      
+      // Check for existing
       final file = File(savePath);
       if (await file.exists()) {
         try {
           await file.delete();
-          print('MusicController: Deleted existing file at $savePath');
+           print('MusicController: Deleted existing file at $savePath');
         } catch (e) {
-          print('MusicController: Check/Delete failed: $e');
-          // Fallback: If delete fails (permission denied), create a unique filename
-          print('MusicController: Generating unique filename due to delete failure.');
-          final timestamp = DateTime.now().millisecondsSinceEpoch;
-          savePath = '${dir.path}/${sanitizedFileName}_$timestamp.mp3';
+           print('MusicController: Check/Delete failed: $e');
+           // Unique name fallback
+           final timestamp = DateTime.now().millisecondsSinceEpoch;
+           savePath = '${dir.path}/${sanitizedFileName}_$timestamp.mp3';
         }
       }
       
       Get.snackbar('Downloading', 'Downloading ${track.name}...');
       
-      try {
-        await Dio().download(
-          track.audioUrl, 
-          savePath,
-          cancelToken: cancelToken,
-          onReceiveProgress: (received, total) {
-             if (cancelToken.isCancelled) return; 
-             if (total != -1) {
-               int progress = ((received / total) * 100).toInt();
-               _notificationService.showProgressNotification(
-                 notificationId,
-                 'Downloading ${track.name}',
-                 '$progress%',
-                 progress,
-                 100
-               );
-             }
-          }
-        );
-      } catch (e) {
-        // Retry logic: If download failed (likely PathExistsException), try with unique name
-        print('MusicController: Primary download failed: $e. Retrying with unique filename...');
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        savePath = '${dir.path}/${sanitizedFileName}_$timestamp.mp3';
-        
-        await Dio().download(
-          track.audioUrl, 
-          savePath,
-          cancelToken: cancelToken,
-          onReceiveProgress: (received, total) {
-             if (cancelToken.isCancelled) return; 
-             if (total != -1) {
-               int progress = ((received / total) * 100).toInt();
-               _notificationService.showProgressNotification(
-                 notificationId,
-                 'Downloading ${track.name}',
-                 '$progress%',
-                 progress,
-                 100
-               );
-             }
-          }
-        );
-      }
+      // --- Download Logic (Refactored to loop/retry once if needed) ---
+      // We will try download logic. If it fails, we might retry with unique name (handled inside logic below)
+      
+      await _executeDownload(track.audioUrl, savePath, cancelToken, notificationId, track.name);
       
       print('MusicController: Download finished for $notificationId');
       _activeDownloads.remove(notificationId);
@@ -221,27 +220,43 @@ class MusicController extends GetxController {
         track.name
       );
       
-      Get.snackbar('Success', 'Saved to Downloads/Nocturne');
-      // Add to persistent storage
-      Get.find<StorageService>().addDownload(track);
-    } catch (e) {
-      print('MusicController: Download error for $notificationId: $e');
+      Get.snackbar('Success', 'Saved to ${dir.path}');
       
-      // Clean up partial file if it exists and it was a cancellation or failure
+      // Trigger Media Scan
       try {
-        final file = File(savePath);
-        if (await file.exists()) {
-          await file.delete();
-          print('MusicController: Deleted partial file at $savePath');
+        if (Platform.isAndroid) {
+          await platform.invokeMethod('scanFile', {'path': savePath});
+          print('MusicController: Media scan triggered for $savePath');
         }
-      } catch (cleanupError) {
-        print('MusicController: Error cleaning up file: $cleanupError');
+      } catch (e) {
+         print('MusicController: Media scan failed: $e');
       }
 
+      // Create updated track with local path
+      final updatedTrack = TrackModel(
+        id: track.id,
+        name: track.name,
+        artistName: track.artistName,
+        albumImage: track.albumImage,
+        audioUrl: track.audioUrl,
+        duration: track.duration,
+        album: track.album,
+        year: track.year,
+        genre: track.genre,
+        releaseDate: track.releaseDate,
+        popularity: track.popularity,
+        hasLyrics: track.hasLyrics,
+        localPath: savePath, // Store the path!
+      );
+
+      // Add to persistent storage
+      Get.find<StorageService>().addDownload(updatedTrack);
+
+    } catch (e) {
+      print('MusicController: Download error for $notificationId: $e');
       if (e is DioException && CancelToken.isCancel(e)) {
           print('MusicController: Download was CANCELLED for $notificationId');
           _activeDownloads.remove(notificationId);
-          // Notification already handled in _cancelDownload
       } else {
           print('MusicController: Download FAILED for $notificationId: $e');
           Get.snackbar('Error', 'Download failed: $e');
@@ -249,5 +264,57 @@ class MusicController extends GetxController {
           _activeDownloads.remove(notificationId);
       }
     }
+  }
+
+  Future<void> _executeDownload(String url, String path, CancelToken cancelToken, int notificationId, String trackName) async {
+     try {
+        await Dio().download(
+          url, 
+          path,
+          cancelToken: cancelToken,
+          onReceiveProgress: (received, total) {
+             if (cancelToken.isCancelled) return; 
+             if (total != -1) {
+               int progress = ((received / total) * 100).toInt();
+               _notificationService.showProgressNotification(
+                 notificationId,
+                 'Downloading $trackName',
+                 '$progress%',
+                 progress,
+                 100
+               );
+             }
+          }
+        );
+     } catch (e) {
+        // Retry with unique name if permission/file locked issue? 
+        // Or if it was just network error, maybe not useful to rename. 
+        // But fulfilling previous logic of retrying with timestamp:
+        print('MusicController: Primary download failed: $e. Retrying with unique filename...');
+        final dir = Directory(File(path).parent.path);
+        // Re-sanitize name just in case, or parse from path
+        final name = trackName.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final newPath = '${dir.path}/${name}_$timestamp.mp3';
+        
+        await Dio().download(
+          url, 
+          newPath,
+          cancelToken: cancelToken,
+          onReceiveProgress: (received, total) {
+             if (cancelToken.isCancelled) return; 
+             if (total != -1) {
+               int progress = ((received / total) * 100).toInt();
+               _notificationService.showProgressNotification(
+                 notificationId,
+                 'Downloading $trackName',
+                 '$progress%',
+                 progress,
+                 100
+               );
+             }
+          }
+        );
+     }
   }
 }
