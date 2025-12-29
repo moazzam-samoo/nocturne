@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:audiotags/audiotags.dart';
 import '../../../backend/data/models/track_model.dart'; // Added missing import
 import '../../../backend/domain/entities/track.dart';
 import '../../../backend/domain/repositories/music_repository.dart';
@@ -182,23 +183,44 @@ class MusicController extends GetxController {
       }
 
       final dir = await _getDownloadDirectory();
+
       
       // Sanitize filename
       final sanitizedFileName = track.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
       String savePath = '${dir.path}/$sanitizedFileName.mp3';
       
-      // Check for existing
+      // Check for existing actual file
       final file = File(savePath);
       if (await file.exists()) {
-        try {
-          await file.delete();
-           print('MusicController: Deleted existing file at $savePath');
-        } catch (e) {
-           print('MusicController: Check/Delete failed: $e');
-           // Unique name fallback
-           final timestamp = DateTime.now().millisecondsSinceEpoch;
-           savePath = '${dir.path}/${sanitizedFileName}_$timestamp.mp3';
-        }
+          // Check if it's already in our DB too
+          final storageService = Get.find<StorageService>();
+          if (storageService.downloadedTracks.any((t) => t.localPath == savePath || t.id == track.id)) {
+              Get.snackbar('Already Downloaded', 'This song is already in your downloads.');
+              return;
+          } else {
+             // File exists but not in DB (edge case? or maybe just sync it now)
+             // We can just add it to DB and return.
+             print('MusicController: File exists but not in DB. Adding to DB.');
+             
+             final updatedTrack = TrackModel(
+                id: track.id,
+                name: track.name,
+                artistName: track.artistName,
+                albumImage: track.albumImage,
+                audioUrl: track.audioUrl,
+                duration: track.duration,
+                album: track.album,
+                year: track.year,
+                genre: track.genre,
+                releaseDate: track.releaseDate,
+                popularity: track.popularity,
+                hasLyrics: track.hasLyrics,
+                localPath: savePath,
+              );
+              storageService.addDownload(updatedTrack);
+              Get.snackbar('Success', 'Added existing file to downloads');
+              return;
+          }
       }
       
       Get.snackbar('Downloading', 'Downloading ${track.name}...');
@@ -315,6 +337,106 @@ class MusicController extends GetxController {
              }
           }
         );
+     }
+  }
+
+  Future<void> _syncExistingDownloads() async {
+     try {
+       print('MusicController: Starting local file sync...');
+       
+       // Request permissions if not strictly granted? 
+       // We'll trust the OS to handle repeated requests policy (or user denied).
+       // We need at least one of these to work.
+       Map<Permission, PermissionStatus> statuses = await [
+          Permission.storage,
+          Permission.audio,
+          Permission.manageExternalStorage,
+       ].request();
+
+       bool storageAccess = statuses[Permission.storage]?.isGranted ?? false;
+       bool audioAccess = statuses[Permission.audio]?.isGranted ?? false; 
+       bool manageAccess = statuses[Permission.manageExternalStorage]?.isGranted ?? false;
+
+       if (storageAccess || audioAccess || manageAccess) {
+           final dir = await _getDownloadDirectory();
+           print('MusicController: Syncing from ${dir.path}');
+           
+           if (await dir.exists()) {
+             final files = dir.listSync().where((e) => e.path.toLowerCase().endsWith('.mp3'));
+             final storageService = Get.find<StorageService>();
+             int newSyncedCount = 0;
+
+             for (var entity in files) {
+                if (entity is File) {
+                   // Check if already in downloads
+                   if (storageService.downloadedTracks.any((t) => t.localPath == entity.path)) {
+                      continue;
+                   }
+                   
+                   try {
+                     // Read metadata using audiotags
+                     Tag? tag = await AudioTags.read(entity.path);
+                     
+                     // Create track
+                     final track = TrackModel(
+                       id: entity.path.hashCode.toString(),
+                       name: tag?.title ?? entity.path.split('/').last.replaceAll('.mp3', ''),
+                       artistName: tag?.trackArtist ?? 'Unknown Artist',
+                       albumImage: '', 
+                       audioUrl: entity.path,
+                       duration: tag?.duration ?? 0,
+                       album: tag?.album ?? 'Unknown Album',
+                       year: tag?.year?.toString() ?? '',
+                       genre: tag?.genre ?? '',
+                       releaseDate: '',
+                       popularity: '0',
+                       hasLyrics: false,
+                       localPath: entity.path,
+                     );
+                     
+                     storageService.addDownload(track);
+                     newSyncedCount++;
+                     print('MusicController: Synced local file: ${track.name}');
+                     
+                   } catch (e) {
+                      print('MusicController: Failed to read metadata for ${entity.path}: $e');
+                      // Fallback
+                      final track = TrackModel(
+                       id: entity.path.hashCode.toString(),
+                       name: entity.path.split('/').last.replaceAll('.mp3', ''),
+                       artistName: 'Unknown Artist',
+                       albumImage: '',
+                       audioUrl: entity.path,
+                       duration: 0,
+                       album: 'Unknown Album',
+                       year: '',
+                       genre: '',
+                       releaseDate: '',
+                       popularity: '0',
+                       hasLyrics: false,
+                       localPath: entity.path,
+                     );
+                     storageService.addDownload(track);
+                     newSyncedCount++;
+                   }
+                }
+             }
+             
+             if (newSyncedCount > 0) {
+                Get.snackbar('Sync Complete', 'Found $newSyncedCount new downloaded songs');
+             } else {
+                // Optional: Uncomment to confirm it ran but found nothing
+                // Get.snackbar('Sync', 'No new local files found', duration: const Duration(seconds: 1));
+             }
+           } else {
+              print('MusicController: Directory does not exist');
+           }
+       } else {
+          print('MusicController: Permissions denied for sync');
+       }
+     } catch (e) {
+        print('MusicController: Sync failed: $e');
+        Get.snackbar('Sync Error', 'Failed to scan local files: $e');
      }
   }
 }

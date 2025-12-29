@@ -49,6 +49,7 @@ dependencies:
   get_storage: ^2.1.1
   google_nav_bar: ^5.0.7
   audio_session: ^0.1.25
+  audiotags: ^1.4.5
 
 dev_dependencies:
   flutter_test:
